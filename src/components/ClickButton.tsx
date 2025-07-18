@@ -1,5 +1,5 @@
 import { useWriteContract, useAccount } from 'wagmi'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { parseEther, getAddress } from 'viem'
 import Explosion from './Explosion'
 import { useGameState } from '../hooks/useGameState'
@@ -7,9 +7,9 @@ import { useGameState } from '../hooks/useGameState'
 const CONTRACT_ADDRESS = getAddress('0xFf2b0FA2ccd7Fa8f872c902628a1217C1B8fc1a3')
 
 export default function ClickButton() {
-  const { address, isConnected } = useAccount()
+  const { isConnected } = useAccount()
   const { writeContractAsync, isPending } = useWriteContract()
-  const { refetch, timeRemaining } = useGameState()
+  const { refetch } = useGameState()
 
   const [explosionCoords, setExplosionCoords] = useState<{ x: number; y: number } | null>(null)
   const [txStatus, setTxStatus] = useState<'idle' | 'success' | 'error' | 'settling'>('idle')
@@ -17,37 +17,32 @@ export default function ClickButton() {
   const handleClick = async (e: React.MouseEvent) => {
     if (!isConnected) return
 
-    // درحال تسویه
-    if (timeRemaining === 0) {
-      setTxStatus('settling')
-      return
-    }
-
     const rect = e.currentTarget.getBoundingClientRect()
     setExplosionCoords({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
 
     try {
       setTxStatus('idle')
       await writeContractAsync({
-        abi: [
-          {
-            name: 'click',
-            type: 'function',
-            stateMutability: 'payable',
-            inputs: [],
-            outputs: [],
-          },
-        ],
+        abi: [{
+          name: 'click',
+          type: 'function',
+          stateMutability: 'payable',
+          inputs: [],
+          outputs: [],
+        }],
         address: CONTRACT_ADDRESS,
         functionName: 'click',
         value: parseEther('0.00005'),
       })
-
       setTxStatus('success')
-      setTimeout(() => refetch(), 600)
-    } catch (err) {
-      console.error('TX Error:', err)
-      setTxStatus('error')
+      refetch()
+    } catch (err: any) {
+      const errorMessage = err?.shortMessage || err?.message || ''
+      if (errorMessage.includes('Round not settled')) {
+        setTxStatus('settling')
+      } else {
+        setTxStatus('error')
+      }
     }
   }
 
@@ -75,17 +70,9 @@ export default function ClickButton() {
         <Explosion x={explosionCoords.x} y={explosionCoords.y} type="emoji" />
       )}
 
-      {txStatus === 'success' && (
-        <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ Buzz confirmed!</p>
-      )}
-      {txStatus === 'error' && (
-        <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ Transaction failed</p>
-      )}
-      {txStatus === 'settling' && (
-        <p style={{ color: '#ffaa00', marginTop: '0.5rem' }}>
-          ⏳ Round is settling, please wait a moment...
-        </p>
-      )}
+      {txStatus === 'success' && <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ Buzz confirmed!</p>}
+      {txStatus === 'error' && <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ Transaction failed</p>}
+      {txStatus === 'settling' && <p style={{ color: '#ff9900', marginTop: '0.5rem' }}>⚠️ Settling last round, try again shortly</p>}
     </div>
   )
 }
