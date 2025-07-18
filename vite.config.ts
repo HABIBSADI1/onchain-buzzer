@@ -38,10 +38,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       plugins: [
-        {
-          ...rollupNodePolyfills(),
-          enforce: 'post', // ✅ مهم برای اطمینان از اجرا در زمان درست
-        },
+        rollupNodePolyfills()
       ],
     },
   },
