@@ -1,6 +1,5 @@
 import { useContractRead } from 'wagmi'
 import { formatEther } from 'viem'
-import { useContractRead as useRead } from 'wagmi'
 
 const CONTRACT_ADDRESS = '0xFf2b0FA2ccd7Fa8f872c902628a1217C1B8fc1a3'
 
@@ -26,16 +25,16 @@ const abi = [
   },
 ] as const
 
-// 🟦 کامپوننت اصلی جدول
 export default function RoundHistoryTable() {
   const { data: totalRounds } = useContractRead({
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'totalRounds',
-    watch: true,
   })
 
-  const rounds = Array.from({ length: Number(totalRounds || 0) }, (_, i) => Number(totalRounds) - 1 - i)
+  const rounds = totalRounds
+    ? Array.from({ length: Number(totalRounds) }, (_, i) => Number(totalRounds) - 1 - i)
+    : []
 
   return (
     <table style={tableStyle}>
@@ -48,17 +47,20 @@ export default function RoundHistoryTable() {
         </tr>
       </thead>
       <tbody>
-        {rounds.map((id) => (
-          <HistoryRow key={id} id={id} />
-        ))}
+        {rounds.length === 0 ? (
+          <tr>
+            <td style={loadingCell} colSpan={4}>No data</td>
+          </tr>
+        ) : (
+          rounds.map(id => <HistoryRow key={id} id={id} />)
+        )}
       </tbody>
     </table>
   )
 }
 
-// 🟦 ردیف هر راند
 function HistoryRow({ id }: { id: number }) {
-  const { data, isLoading, isError } = useContractRead({
+  const { data, isError, isLoading } = useContractRead({
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'history',
@@ -108,25 +110,24 @@ function HistoryRow({ id }: { id: number }) {
   )
 }
 
-// 🟦 استایل‌ها
-const tableStyle = {
+const tableStyle: React.CSSProperties = {
   width: '100%',
-  borderCollapse: 'collapse',
+  borderCollapse: 'collapse' as const,
   fontSize: '0.92rem',
   fontFamily: 'Inter, sans-serif',
 }
 
-const headerRowStyle = {
+const headerRowStyle: React.CSSProperties = {
   backgroundColor: '#eef2ff',
 }
 
-const cellStyle = {
+const cellStyle: React.CSSProperties = {
   padding: '10px',
   borderBottom: '1px solid #ddd',
-  textAlign: 'center' as const,
+  textAlign: 'center',
 }
 
-const loadingCell = {
+const loadingCell: React.CSSProperties = {
   ...cellStyle,
   fontStyle: 'italic',
   color: '#888',

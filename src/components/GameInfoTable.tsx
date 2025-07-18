@@ -11,7 +11,7 @@ export default function GameInfoTable() {
   return (
     <table style={{
       width: '100%',
-      borderCollapse: 'collapse',
+      borderCollapse: 'collapse' as const,
       fontSize: '1rem'
     }}>
       <tbody>
@@ -40,7 +40,7 @@ export default function GameInfoTable() {
   )
 }
 
-const tdStyle = {
+const tdStyle: React.CSSProperties = {
   padding: '10px',
   borderBottom: '1px solid #ddd',
 }

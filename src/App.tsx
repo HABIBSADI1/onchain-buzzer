@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react'
-
-import { ConnectButton } from '@rainbow-me/rainbowkit'
 import ClickButton from './components/ClickButton'
 import CountdownTimer from './components/CountdownTimer'
 import GameInfoTable from './components/GameInfoTable'
@@ -9,14 +7,14 @@ import ShareButton from './components/ShareButton'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import Explosion from './components/Explosion'
+import ConnectButton from './components/ConnectButton'
 
-// ✅ فقط این استایل به کل صفحه اضافه شده
-const containerStyle = {
+const containerStyle: React.CSSProperties = {
   backgroundColor: '#f7f9ff',
   minHeight: '100vh',
   display: 'flex',
-  flexDirection: 'column',
-  fontFamily: '"Inter", sans-serif' as const,
+  flexDirection: 'column' as const,
+  fontFamily: '"Inter", sans-serif',
 }
 
 export default function App() {
@@ -37,7 +35,6 @@ export default function App() {
     <div style={containerStyle}>
       <Header />
 
-      {/* دکمه اتصال کیف پول بالا سمت راست */}
       <div style={{ position: 'absolute', top: '1rem', right: '1rem', zIndex: 50 }}>
         <ConnectButton />
       </div>
@@ -60,7 +57,6 @@ export default function App() {
             alignItems: 'stretch',
           }}
         >
-          {/* ستون چپ - تصویر */}
           <div
             style={{
               flex: 1,
@@ -85,7 +81,6 @@ export default function App() {
             />
           </div>
 
-          {/* ستون راست */}
           <div
             style={{
               flex: 1,
@@ -95,7 +90,6 @@ export default function App() {
               minHeight: '580px',
             }}
           >
-            {/* تایمر و دکمه */}
             <div
               style={{
                 background: '#fff',
@@ -112,7 +106,6 @@ export default function App() {
               <ClickButton />
             </div>
 
-            {/* اشتراک‌گذاری */}
             <div
               style={{
                 background: '#fff',
@@ -126,7 +119,6 @@ export default function App() {
               <ShareButton />
             </div>
 
-            {/* اطلاعات بازی */}
             <div
               style={{
                 background: '#fff',
@@ -151,7 +143,6 @@ export default function App() {
         </div>
       </main>
 
-      {/* جدول راندهای قبلی */}
       <div
         style={{
           background: '#f7f9ff',
@@ -185,7 +176,6 @@ export default function App() {
 
       <Footer />
 
-      {/* افکت کلیک بدنه - لوگوی Base */}
       {globalExplosion && <Explosion x={globalExplosion.x} y={globalExplosion.y} type="logo" />}
     </div>
   )
