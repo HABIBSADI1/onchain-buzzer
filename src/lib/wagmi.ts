@@ -7,13 +7,12 @@ export const config = createConfig(
     appName: 'Onchain Buzzer',
     walletConnectProjectId: 'a450272bbef8c0cf05ad341f47cee9cd',
     chains: [base],
-    ssr: false,
-    // 👇 این خط باعث می‌شه ENS خاموش بشه
+    // 🔧 تنظیمات UI و متا فقط داخل options
     options: {
       appName: 'Onchain Buzzer',
       appDescription: 'Buzz to win on Base!',
       appUrl: 'https://onchain-buzzer.xyz',
       appIcon: 'https://base.org/favicon.ico',
-    }
+    },
   })
 )
