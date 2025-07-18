@@ -24,7 +24,7 @@ function formatTime(sec: number): string {
 export default function CountdownTimer() {
   const { timeRemaining, refetch } = useGameState()
   const [timeLeft, setTimeLeft] = useState<number>(0)
-  const [txHash, setTxHash] = useState<`0x${string}` | null>(null)
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>(undefined) // ✅
 
   const { write } = useContractWrite({
     address: CONTRACT_ADDRESS,

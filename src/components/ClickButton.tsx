@@ -21,7 +21,7 @@ export default function ClickButton() {
   const { refetch } = useGameState()
 
   const [explosionCoords, setExplosionCoords] = useState<{ x: number; y: number } | null>(null)
-  const [txHash, setTxHash] = useState<`0x${string}` | null>(null)
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>(undefined) // ✅
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error' | 'settling'>('idle')
 
   const { write, isLoading: isWriting } = useContractWrite({

@@ -20,7 +20,6 @@ export default defineConfig({
   optimizeDeps: {
     include: ['buffer', 'process', 'util', 'stream'],
     esbuildOptions: {
-      // Inject global polyfills
       define: {
         global: 'globalThis',
       },
@@ -39,8 +38,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       plugins: [
-        // Inject rollup polyfills
-        rollupNodePolyfills(),
+        {
+          ...rollupNodePolyfills(),
+          enforce: 'post', // ✅ مهم برای اطمینان از اجرا در زمان درست
+        },
       ],
     },
   },
