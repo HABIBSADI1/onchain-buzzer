@@ -1,12 +1,12 @@
-import { useContractWrite, useWaitForTransaction, useAccount } from 'wagmi'
 import { useState } from 'react'
+import { useContractWrite, useWaitForTransaction, useAccount } from 'wagmi'
 import { parseEther, getAddress } from 'viem'
 import Explosion from './Explosion'
 import { useGameState } from '../hooks/useGameState'
 
 const CONTRACT_ADDRESS = getAddress('0xFf2b0FA2ccd7Fa8f872c902628a1217C1B8fc1a3')
 
-const abi = [
+const ABI = [
   {
     name: 'click',
     type: 'function',
@@ -19,27 +19,22 @@ const abi = [
 export default function ClickButton() {
   const { isConnected } = useAccount()
   const { refetch } = useGameState()
-
-  const [explosionCoords, setExplosionCoords] = useState<{ x: number; y: number } | null>(null)
-  const [txHash, setTxHash] = useState<`0x${string}` | undefined>(undefined) // ✅
+  const [explosion, setExplosion] = useState<{ x: number; y: number } | null>(null)
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error' | 'settling'>('idle')
 
-  const { write, isLoading: isWriting } = useContractWrite({
+  const { write, isLoading } = useContractWrite({
     address: CONTRACT_ADDRESS,
-    abi,
+    abi: ABI,
     functionName: 'click',
     value: parseEther('0.00005'),
     onSuccess: (tx) => {
       setStatus('pending')
       setTxHash(tx.hash)
     },
-    onError: (error) => {
-      const msg = error.message || ''
-      if (msg.includes('Round not settled')) {
-        setStatus('settling')
-      } else {
-        setStatus('error')
-      }
+    onError: (err) => {
+      const msg = err.message || ''
+      setStatus(msg.includes('Round not settled') ? 'settling' : 'error')
     },
   })
 
@@ -47,17 +42,18 @@ export default function ClickButton() {
     hash: txHash,
     onSuccess: () => {
       setStatus('success')
-      refetch() // ✅ دستی
+      refetch()
     },
-    onError: () => {
-      setStatus('error')
-    },
+    onError: () => setStatus('error'),
   })
 
-  const handleClick = (e: React.MouseEvent) => {
-    if (!isConnected || isWriting) return
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!isConnected || isLoading) return
+
     const rect = e.currentTarget.getBoundingClientRect()
-    setExplosionCoords({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+    setExplosion({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+    setTimeout(() => setExplosion(null), 1000)
+
     setStatus('idle')
     write?.()
   }
@@ -66,25 +62,23 @@ export default function ClickButton() {
     <div style={{ position: 'relative', marginTop: '1.5rem' }}>
       <button
         onClick={handleClick}
-        disabled={isWriting || !isConnected}
+        disabled={!isConnected || isLoading}
         style={{
-          background: '#0052FF',
+          backgroundColor: '#0052FF',
           color: '#fff',
           padding: '1rem 2.5rem',
           fontSize: '1.2rem',
-          borderRadius: '12px',
-          border: 'none',
-          boxShadow: '0 0 12px rgba(0,82,255,0.4)',
-          cursor: 'pointer',
           fontWeight: 600,
+          border: 'none',
+          borderRadius: '12px',
+          cursor: 'pointer',
+          boxShadow: '0 0 12px rgba(0,82,255,0.4)',
         }}
       >
         🔥 CLICK TO BUZZ
       </button>
 
-      {explosionCoords && (
-        <Explosion x={explosionCoords.x} y={explosionCoords.y} type="emoji" />
-      )}
+      {explosion && <Explosion x={explosion.x} y={explosion.y} type="emoji" />}
 
       {status === 'success' && <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ Buzz confirmed!</p>}
       {status === 'error' && <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ Transaction failed</p>}

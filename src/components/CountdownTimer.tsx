@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useGameState } from '../hooks/useGameState'
 import { useContractWrite, useWaitForTransaction } from 'wagmi'
+import { useGameState } from '../hooks/useGameState'
 import { getAddress } from 'viem'
 
 const CONTRACT_ADDRESS = getAddress('0xFf2b0FA2ccd7Fa8f872c902628a1217C1B8fc1a3')
 
-const abi = [
+const ABI = [
   {
     name: 'settle',
     type: 'function',
@@ -23,33 +23,30 @@ function formatTime(sec: number): string {
 
 export default function CountdownTimer() {
   const { timeRemaining, refetch } = useGameState()
-  const [timeLeft, setTimeLeft] = useState<number>(0)
-  const [txHash, setTxHash] = useState<`0x${string}` | undefined>(undefined) // ✅
+  const [seconds, setSeconds] = useState<number>(0)
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
 
   const { write } = useContractWrite({
     address: CONTRACT_ADDRESS,
-    abi,
+    abi: ABI,
     functionName: 'settle',
     onSuccess: (tx) => setTxHash(tx.hash),
   })
 
   useWaitForTransaction({
     hash: txHash,
-    onSuccess: () => {
-      refetch()
-    },
+    onSuccess: () => refetch(),
   })
 
   useEffect(() => {
-    if (typeof timeRemaining !== 'number') return
-    setTimeLeft(timeRemaining)
+    if (!timeRemaining || timeRemaining <= 0) return
+    setSeconds(timeRemaining)
 
     const interval = setInterval(() => {
-      setTimeLeft(t => {
-        if (t === 1) {
-          write?.()
-        }
-        return Math.max(t - 1, 0)
+      setSeconds((s) => {
+        const next = s - 1
+        if (next === 0) write?.()
+        return Math.max(next, 0)
       })
     }, 1000)
 
@@ -60,17 +57,14 @@ export default function CountdownTimer() {
     <div style={{
       fontSize: '3.5rem',
       fontWeight: 900,
-      letterSpacing: '2px',
       color: '#0052FF',
-      textShadow: '0 0 12px rgba(0, 82, 255, 0.8)',
+      textShadow: '0 0 10px rgba(0, 82, 255, 0.8)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       gap: '1rem',
-      animation: 'pulse 1.6s infinite',
     }}>
-      <span role="img" aria-label="timer">⏱</span>
-      <span>{formatTime(timeLeft)}</span>
+      ⏱ <span>{formatTime(seconds)}</span>
     </div>
   )
 }
