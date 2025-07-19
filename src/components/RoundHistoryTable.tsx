@@ -26,15 +26,14 @@ const abi = [
 ] as const
 
 export default function RoundHistoryTable() {
-  const { data: totalRounds } = useContractRead({
+  const { data: totalRounds, isLoading } = useContractRead({
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'totalRounds',
   })
 
-  const rounds = totalRounds
-    ? Array.from({ length: Number(totalRounds) }, (_, i) => Number(totalRounds) - 1 - i)
-    : []
+  const total = Number(totalRounds || 0)
+  const rounds = total > 0 ? Array.from({ length: total }, (_, i) => total - 1 - i) : []
 
   return (
     <table style={tableStyle}>
@@ -47,10 +46,10 @@ export default function RoundHistoryTable() {
         </tr>
       </thead>
       <tbody>
-        {rounds.length === 0 ? (
-          <tr>
-            <td style={loadingCell} colSpan={4}>No data</td>
-          </tr>
+        {isLoading ? (
+          <tr><td colSpan={4} style={loadingCell}>Loading rounds...</td></tr>
+        ) : rounds.length === 0 ? (
+          <tr><td colSpan={4} style={loadingCell}>No rounds yet</td></tr>
         ) : (
           rounds.map(id => <HistoryRow key={id} id={id} />)
         )}
@@ -65,39 +64,30 @@ function HistoryRow({ id }: { id: number }) {
     abi,
     functionName: 'history',
     args: [BigInt(id)],
+    enabled: id >= 0,
   })
 
   if (isLoading) {
     return (
-      <tr>
-        <td style={loadingCell} colSpan={4}>Loading...</td>
-      </tr>
+      <tr><td colSpan={4} style={loadingCell}>Loading...</td></tr>
     )
   }
+
+  if (isError || !data) {
+    return (
+      <tr><td colSpan={4} style={{ ...cellStyle, color: 'red' }}>❌ Error loading round #{id}</td></tr>
+    )
+  }
+
+  const { roundId, winner, reward, timestamp } = data as any
 
   if (
-    isError ||
-    !data ||
-    typeof data !== 'object' ||
-    !('winner' in data) ||
-    !('roundId' in data) ||
-    !('reward' in data) ||
-    !('timestamp' in data)
+    roundId === undefined ||
+    winner === undefined ||
+    reward === undefined ||
+    timestamp === undefined
   ) {
-    return (
-      <tr>
-        <td colSpan={4} style={{ ...cellStyle, color: 'red' }}>
-          ❌ Error loading round #{id}
-        </td>
-      </tr>
-    )
-  }
-
-  const { roundId, winner, reward, timestamp } = data as {
-    roundId: bigint
-    winner: string
-    reward: bigint
-    timestamp: bigint
+    return null // skip invalid rows silently
   }
 
   return (
@@ -112,7 +102,7 @@ function HistoryRow({ id }: { id: number }) {
 
 const tableStyle: React.CSSProperties = {
   width: '100%',
-  borderCollapse: 'collapse' as const,
+  borderCollapse: 'collapse',
   fontSize: '0.92rem',
   fontFamily: 'Inter, sans-serif',
 }

@@ -18,9 +18,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WagmiConfig config={config}>
       <QueryClientProvider client={queryClient}>
-        <ConnectKitProvider>
-          <App />
-        </ConnectKitProvider>
+        <ConnectKitProvider
+  mode="light"
+  options={{ showRecentTransactions: false }}
+>
+  <App />
+</ConnectKitProvider>
       </QueryClientProvider>
     </WagmiConfig>
   </React.StrictMode>

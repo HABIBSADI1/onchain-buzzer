@@ -10,11 +10,11 @@ const abi = [
     stateMutability: 'view',
     inputs: [],
     outputs: [
-      { name: 'roundId', type: 'uint256' },
-      { name: 'pot', type: 'uint256' },
-      { name: 'clickCount', type: 'uint256' },
-      { name: 'lastPlayer', type: 'address' },
-      { name: 'timeRemaining', type: 'uint256' },
+      { name: '_roundId', type: 'uint256' },
+      { name: '_lastPlayer', type: 'address' },
+      { name: '_pot', type: 'uint256' },
+      { name: '_timeRemaining', type: 'uint256' },
+      { name: '_clicks', type: 'uint256' }
     ],
   },
 ] as const
@@ -24,7 +24,6 @@ export function useGameState() {
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'getGameState',
-    // ✅ NO watch
   })
 
   const [state, setState] = useState<{
@@ -42,16 +41,8 @@ export function useGameState() {
   })
 
   useEffect(() => {
-    if (
-      data &&
-      typeof data === 'object' &&
-      'roundId' in data &&
-      'pot' in data &&
-      'clickCount' in data &&
-      'lastPlayer' in data &&
-      'timeRemaining' in data
-    ) {
-      const { roundId, pot, clickCount, lastPlayer, timeRemaining } = data as any
+    if (Array.isArray(data)) {
+      const [roundId, lastPlayer, pot, timeRemaining, clickCount] = data
       setState({
         roundId,
         pot,

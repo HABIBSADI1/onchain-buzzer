@@ -7,7 +7,7 @@ import abi from './abi.json'
 dotenv.config()
 
 const CONTRACT_ADDRESS = '0xFf2b0FA2ccd7Fa8f872c902628a1217C1B8fc1a3'
-const RPC_URL = 'https://base-mainnet.public.blastapi.io'
+const RPC_URL = 'https://base-mainnet.infura.io/v3/0cc292f9dc31410e8c08cce78aa00be2'
 
 const privateKey = process.env.PRIVATE_KEY || ''
 if (!privateKey || privateKey.length !== 66) {

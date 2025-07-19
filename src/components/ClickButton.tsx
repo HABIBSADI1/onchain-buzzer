@@ -19,24 +19,35 @@ const ABI = [
 export default function ClickButton() {
   const { isConnected } = useAccount()
   const { refetch } = useGameState()
+
   const [explosion, setExplosion] = useState<{ x: number; y: number } | null>(null)
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error' | 'settling'>('idle')
 
-  const { write, isLoading } = useContractWrite({
+  const { writeAsync } = useContractWrite({
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: 'click',
-    value: parseEther('0.00005'),
-    onSuccess: (tx) => {
-      setStatus('pending')
+  })
+
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!isConnected) return
+
+    const rect = e.currentTarget.getBoundingClientRect()
+    setExplosion({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+    setTimeout(() => setExplosion(null), 1000)
+
+    setStatus('pending')
+    try {
+      const tx = await writeAsync({
+        value: parseEther('0.00005'),
+      })
       setTxHash(tx.hash)
-    },
-    onError: (err) => {
+    } catch (err: any) {
       const msg = err.message || ''
       setStatus(msg.includes('Round not settled') ? 'settling' : 'error')
-    },
-  })
+    }
+  }
 
   useWaitForTransaction({
     hash: txHash,
@@ -47,22 +58,11 @@ export default function ClickButton() {
     onError: () => setStatus('error'),
   })
 
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!isConnected || isLoading) return
-
-    const rect = e.currentTarget.getBoundingClientRect()
-    setExplosion({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
-    setTimeout(() => setExplosion(null), 1000)
-
-    setStatus('idle')
-    write?.()
-  }
-
   return (
     <div style={{ position: 'relative', marginTop: '1.5rem' }}>
       <button
         onClick={handleClick}
-        disabled={!isConnected || isLoading}
+        disabled={!isConnected || status === 'pending'}
         style={{
           backgroundColor: '#0052FF',
           color: '#fff',
@@ -83,6 +83,7 @@ export default function ClickButton() {
       {status === 'success' && <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ Buzz confirmed!</p>}
       {status === 'error' && <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ Transaction failed</p>}
       {status === 'settling' && <p style={{ color: '#ff9900', marginTop: '0.5rem' }}>⚠️ Settling last round, try again shortly</p>}
+      {status === 'pending' && <p style={{ color: '#007bff', marginTop: '0.5rem' }}>⏳ Waiting for confirmation...</p>}
     </div>
   )
 }
