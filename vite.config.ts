@@ -11,8 +11,12 @@ export default defineConfig({
       process: 'process',
     },
   },
+  define: {
+    global: 'globalThis',
+  },
   optimizeDeps: {
     include: ['buffer', 'process'],
+    exclude: ['@safe-global/safe-apps-provider', '@safe-global/safe-apps-sdk'],
     esbuildOptions: {
       define: {
         global: 'globalThis',
@@ -23,12 +27,14 @@ export default defineConfig({
       ],
     },
   },
-  define: {
-    global: 'globalThis',
-  },
   build: {
     rollupOptions: {
-      external: ['@safe-global/safe-apps-provider'], // ✅ این خط مهمه
+      external: [
+        '@safe-global/safe-apps-provider',
+        '@safe-global/safe-apps-sdk',
+        '@safe-globalThis/safe-apps-provider',
+        '@safe-globalThis/safe-apps-sdk',
+      ],
     },
   },
 })
