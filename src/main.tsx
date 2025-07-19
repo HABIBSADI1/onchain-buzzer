@@ -1,3 +1,4 @@
+// src/main.tsx
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -18,12 +19,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WagmiConfig config={config}>
       <QueryClientProvider client={queryClient}>
-        <ConnectKitProvider
-  mode="light"
-  options={{ showRecentTransactions: false }}
->
-  <App />
-</ConnectKitProvider>
+        <ConnectKitProvider>
+          <App />
+        </ConnectKitProvider>
       </QueryClientProvider>
     </WagmiConfig>
   </React.StrictMode>
