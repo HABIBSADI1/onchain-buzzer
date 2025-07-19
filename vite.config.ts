@@ -28,7 +28,7 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      // این خط باعث میشه که اون ایمپورت اشتباهی که wagmi انجام داده نادیده گرفته بشه
+      // ✅ این باعث میشه خطای Safe provider برطرف بشه
       external: ['@safe-global/safe-apps-provider'],
     },
   },
