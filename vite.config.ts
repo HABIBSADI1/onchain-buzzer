@@ -27,8 +27,8 @@ export default defineConfig({
     global: 'globalThis',
   },
   build: {
-  rollupOptions: {
-    external: ['@safe-global/safe-apps-provider'],
+    rollupOptions: {
+      external: ['@safe-global/safe-apps-provider'], // ✅ این خط مهمه
+    },
   },
-},
 })
