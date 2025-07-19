@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useContractWrite, useWaitForTransaction } from 'wagmi'
+import { useContractWrite, useWaitForTransactionReceipt } from 'wagmi'
 import { useGameState } from '../hooks/useGameState'
 import { getAddress } from 'viem'
 
@@ -33,9 +33,12 @@ export default function CountdownTimer() {
     onSuccess: (tx) => setTxHash(tx.hash),
   })
 
-  useWaitForTransaction({
+  useWaitForTransactionReceipt({
     hash: txHash,
-    onSuccess: () => refetch(),
+    query: {
+      enabled: !!txHash,
+      onSuccess: () => refetch(),
+    },
   })
 
   useEffect(() => {

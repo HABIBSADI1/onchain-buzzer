@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useContractWrite, useWaitForTransaction, useAccount } from 'wagmi'
+import { useContractWrite, useWaitForTransactionReceipt, useAccount } from 'wagmi'
 import { parseEther, getAddress } from 'viem'
 import Explosion from './Explosion'
 import { useGameState } from '../hooks/useGameState'
@@ -24,11 +24,7 @@ export default function ClickButton() {
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error' | 'settling'>('idle')
 
-  const { writeAsync } = useContractWrite({
-    address: CONTRACT_ADDRESS,
-    abi: ABI,
-    functionName: 'click',
-  })
+  const { writeContractAsync } = useContractWrite()
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     if (!isConnected) return
@@ -39,23 +35,31 @@ export default function ClickButton() {
 
     setStatus('pending')
     try {
-      const tx = await writeAsync({
+      const tx = await writeContractAsync({
+        address: CONTRACT_ADDRESS,
+        abi: ABI,
+        functionName: 'click',
         value: parseEther('0.00005'),
       })
-      setTxHash(tx.hash)
+      setTxHash(tx)
     } catch (err: any) {
       const msg = err.message || ''
       setStatus(msg.includes('Round not settled') ? 'settling' : 'error')
     }
   }
 
-  useWaitForTransaction({
+  useWaitForTransactionReceipt({
     hash: txHash,
-    onSuccess: () => {
-      setStatus('success')
-      refetch()
+    query: {
+      enabled: !!txHash,
+      onSuccess: () => {
+        setStatus('success')
+        refetch()
+      },
+      onError: () => {
+        setStatus('error')
+      },
     },
-    onError: () => setStatus('error'),
   })
 
   return (
