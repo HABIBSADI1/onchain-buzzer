@@ -1,11 +1,10 @@
 // src/lib/wagmi.ts
-
 import { createConfig, configureChains } from 'wagmi'
 import { Chain } from 'wagmi'
 import { publicProvider } from 'wagmi/providers/public'
-import { getDefaultConfig } from 'connectkit'
+import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 
-// تعریف دستی شبکه Base
+// تعریف شبکه Base
 const baseChain: Chain = {
   id: 8453,
   name: 'Base',
@@ -28,18 +27,20 @@ const baseChain: Chain = {
   },
 }
 
-// تنظیمات wagmi
+// تنظیمات chain و provider
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [baseChain],
-  [publicProvider()]
+  [
+    publicProvider(),
+    jsonRpcProvider({
+      rpc: () => ({ http: 'https://mainnet.base.org' }),
+    }),
+  ]
 )
 
-export const config = createConfig(
-  getDefaultConfig({
-    appName: 'Onchain Buzzer',
-    chains,
-    publicClient,
-    webSocketPublicClient,
-    walletConnectProjectId: 'a450272bbef8c0cf05ad341f47cee9cd',
-  })
-)
+export const config = createConfig({
+  autoConnect: true,
+  publicClient,
+  webSocketPublicClient,
+  connectors: [], // اگر از connectkit استفاده نمی‌کنی، اینو خالی بذار
+})
