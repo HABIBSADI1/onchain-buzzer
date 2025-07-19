@@ -27,9 +27,8 @@ export default defineConfig({
     global: 'globalThis',
   },
   build: {
-    rollupOptions: {
-      // ✅ این باعث میشه خطای Safe provider برطرف بشه
-      external: ['@safe-global/safe-apps-provider'],
-    },
+  rollupOptions: {
+    external: ['@safe-global/safe-apps-provider'],
   },
+},
 })
