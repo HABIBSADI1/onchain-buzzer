@@ -26,4 +26,10 @@ export default defineConfig({
   define: {
     global: 'globalThis',
   },
+  build: {
+    rollupOptions: {
+      // این خط باعث میشه که اون ایمپورت اشتباهی که wagmi انجام داده نادیده گرفته بشه
+      external: ['@safe-global/safe-apps-provider'],
+    },
+  },
 })
