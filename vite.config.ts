@@ -15,18 +15,18 @@ export default defineConfig({
     global: 'globalThis',
   },
   optimizeDeps: {
-    include: ['buffer', 'process'],
-    exclude: ['@safe-global/safe-apps-provider', '@safe-global/safe-apps-sdk'],
-    esbuildOptions: {
-      define: {
-        global: 'globalThis',
-      },
-      plugins: [
-        NodeGlobalsPolyfillPlugin({ process: true, buffer: true }),
-        NodeModulesPolyfillPlugin(),
-      ],
+  include: ['buffer'],
+  esbuildOptions: {
+    define: {
+      global: 'globalThis',
     },
+    plugins: [
+      NodeGlobalsPolyfillPlugin({ process: true, buffer: true }),
+      NodeModulesPolyfillPlugin(),
+    ],
   },
+}
+,
   build: {
     rollupOptions: {
       external: [
