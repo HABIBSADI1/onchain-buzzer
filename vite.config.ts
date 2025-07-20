@@ -8,26 +8,35 @@ export default defineConfig({
     alias: {
       process: 'rollup-plugin-node-polyfills/polyfills/process-es6',
       buffer: 'rollup-plugin-node-polyfills/polyfills/buffer-es6',
-
-      // در صورتی که به Safe نیاز داری (در پروژه فعلی نداری اما برای احتیاط)
+      
+      // رفع ارورهای wagmi مربوط به Safe
       '@safe-globalThis/safe-apps-sdk': '@safe-global/safe-apps-sdk',
       '@safe-globalThis/safe-apps-provider': '@safe-global/safe-apps-provider',
-      '@safe-globalThis/safe-gateway-typescript-sdk':
-        '@safe-global/safe-gateway-typescript-sdk',
+      '@safe-globalThis/safe-gateway-typescript-sdk': '@safe-global/safe-gateway-typescript-sdk',
     },
   },
   define: {
-    global: 'globalThis', // برای حل مشکل global is not defined
+    global: 'globalThis',
   },
   optimizeDeps: {
     include: ['buffer', 'process'],
-    exclude: ['@base-org/account'], // اگر وجود داره در پروژه‌ات
+    exclude: [
+      '@base-org/account',
+      '@safe-global/safe-apps-sdk',
+      '@safe-global/safe-apps-provider',
+      '@safe-global/safe-gateway-typescript-sdk',
+    ],
   },
   build: {
     target: 'esnext',
     rollupOptions: {
       plugins: [rollupNodePolyfills()],
-      external: ['@base-org/account'], // برای جلوگیری از باگ‌های هنگام build
+      external: [
+        '@base-org/account',
+        '@safe-global/safe-apps-sdk',
+        '@safe-global/safe-apps-provider',
+        '@safe-global/safe-gateway-typescript-sdk',
+      ],
     },
   },
 })
