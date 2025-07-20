@@ -1,26 +1,25 @@
-// src/lib/wagmi.ts
-import { chain, configureChains, createClient } from 'wagmi'
+import { configureChains, createClient } from 'wagmi'
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import { publicProvider } from 'wagmi/providers/public'
-import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
+import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 
-// تعریف Base chain به‌صورت سفارشی
+// ✅ شبکه Base به صورت دستی
 const baseChain = {
   id: 8453,
   name: 'Base',
   network: 'base',
   nativeCurrency: {
-    decimals: 18,
-    name: 'Base',
+    name: 'Ether',
     symbol: 'ETH',
+    decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ['https://mainnet.base.org'],
+      http: [import.meta.env.VITE_RPC_URL!], // ← استفاده از env
     },
     public: {
-      http: ['https://mainnet.base.org'],
+      http: [import.meta.env.VITE_RPC_URL!],
     },
   },
   blockExplorers: {
@@ -29,18 +28,20 @@ const baseChain = {
   testnet: false,
 }
 
-// اتصال به شبکه
+// ✅ اتصال شبکه + provider
 const { provider, webSocketProvider } = configureChains(
   [baseChain],
   [
     jsonRpcProvider({
-      rpc: () => ({ http: 'https://mainnet.base.org' }),
+      rpc: () => ({
+        http: import.meta.env.VITE_RPC_URL!,
+      }),
     }),
     publicProvider(),
   ]
 )
 
-// ایجاد کلاینت wagmi
+// ✅ ساخت کلاینت wagmi
 export const config = createClient({
   autoConnect: true,
   provider,
@@ -50,8 +51,8 @@ export const config = createClient({
     new WalletConnectConnector({
       chains: [baseChain],
       options: {
-        projectId: 'a450272bbef8c0cf05ad341f47cee9cd',
-        showQrModal: true,
+        projectId: import.meta.env.VITE_WC_PROJECT_ID!,
+        showQrModal: false, // جلوگیری از باز شدن مودال تکراری
       },
     }),
   ],
