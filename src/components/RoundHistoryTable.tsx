@@ -66,7 +66,7 @@ function HistoryRow({ id }: { id: number }) {
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'history',
-    args: [id.toString()]
+    args: [id.toString()],   // ← این خط اصلاح شده
     enabled: id >= 0,
   })
 
