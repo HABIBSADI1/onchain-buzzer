@@ -1,127 +1,82 @@
-import { useContractRead } from 'wagmi'
+import { useEffect, useState } from 'react'
 import { formatEther } from 'viem'
 
-const CONTRACT_ADDRESS = '0xFf2b0FA2ccd7Fa8f872c902628a1217C1B8fc1a3'
+type Round = {
+  roundId: string
+  winner: string
+  reward: string
+  timestamp: string
+}
 
-const abi = [
-  {
-    name: 'history',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [{ name: '', type: 'uint256' }],
-    outputs: [
-      { name: 'roundId', type: 'uint256' },
-      { name: 'winner', type: 'address' },
-      { name: 'reward', type: 'uint256' },
-      { name: 'timestamp', type: 'uint256' },
-    ],
-  },
-  {
-    name: 'totalRounds',
-    type: 'function',
-    stateMutability: 'view',
-    inputs: [],
-    outputs: [{ name: '', type: 'uint256' }],
-  },
-] as const
+const PAGE_SIZE = 5
 
 export default function RoundHistoryTable() {
-  const { data: totalRounds, isLoading } = useContractRead({
-    address: CONTRACT_ADDRESS,
-    abi,
-    functionName: 'totalRounds',
-  })
+  const [rounds, setRounds] = useState<Round[]>([])
+  const [loading, setLoading] = useState(true)
+  const [page, setPage] = useState(0)
 
-  const total = typeof totalRounds === 'bigint' ? Number(totalRounds) : 0
-  const rounds = total > 0
-    ? Array.from({ length: Math.min(total, 5) }, (_, i) => total - 1 - i)
-    : []
+  useEffect(() => {
+    const load = async () => {
+      const res = await fetch('/api/rounds')
+      const data = await res.json()
+      setRounds(data)
+      setLoading(false)
+    }
+
+    load()
+  }, [])
+
+  const paginated = rounds.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
-    <table style={tableStyle}>
-      <thead>
-        <tr style={headerRowStyle}>
-          <th style={cellStyle}>Round</th>
-          <th style={cellStyle}>Winner</th>
-          <th style={cellStyle}>Reward (ETH)</th>
-          <th style={cellStyle}>Time</th>
-        </tr>
-      </thead>
-      <tbody>
-        {isLoading ? (
-          <tr><td colSpan={4} style={loadingCell}>Loading rounds...</td></tr>
-        ) : rounds.length === 0 ? (
-          <tr><td colSpan={4} style={loadingCell}>No rounds yet</td></tr>
-        ) : (
-          rounds.map((id) => <HistoryRow key={id} id={id} />)
-        )}
-      </tbody>
-    </table>
+    <div>
+      <table style={tableStyle}>
+        <thead>
+          <tr style={headerRowStyle}>
+            <th style={cellStyle}>Round</th>
+            <th style={cellStyle}>Winner</th>
+            <th style={cellStyle}>Reward (ETH)</th>
+            <th style={cellStyle}>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <tr><td colSpan={4} style={cellStyle}>Loading...</td></tr>
+          ) : paginated.length === 0 ? (
+            <tr><td colSpan={4} style={cellStyle}>No data available.</td></tr>
+          ) : (
+            paginated.map((r, i) => (
+              <tr key={i}>
+                <td style={cellStyle}>#{r.roundId}</td>
+                <td style={cellStyle}>{shorten(r.winner)}</td>
+                <td style={cellStyle}>{formatEther(BigInt(r.reward))}</td>
+                <td style={cellStyle}>{formatTime(Number(r.timestamp))}</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+
+      {!loading && rounds.length > PAGE_SIZE && (
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} style={btnStyle}>← Prev</button>
+          <span style={{ margin: '0 1rem' }}>Page {page + 1}</span>
+          <button onClick={() => setPage(p => (p + 1) * PAGE_SIZE < rounds.length ? p + 1 : p)} style={btnStyle}>Next →</button>
+        </div>
+      )}
+    </div>
   )
 }
 
-function HistoryRow({ id }: { id: number }) {
-  const { data, isError, isLoading } = useContractRead({
-    address: CONTRACT_ADDRESS,
-    abi,
-    functionName: 'history',
-    args: [BigInt(id)], // ✅ bigint صحیح و پشتیبانی‌شده توسط viem/wagmi
-    enabled: id >= 0,
+const shorten = (addr: string) => addr.slice(0, 6) + '...' + addr.slice(-4)
+
+const formatTime = (ts: number) =>
+  new Date(ts * 1000).toLocaleString('en-US', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
   })
 
-  if (isLoading) {
-    return <tr><td colSpan={4} style={loadingCell}>Loading...</td></tr>
-  }
-
-  if (isError || !data || !Array.isArray(data)) {
-    return (
-      <tr>
-        <td colSpan={4} style={{ ...cellStyle, color: 'red' }}>
-          ❌ Error loading round #{id}
-        </td>
-      </tr>
-    )
-  }
-
-  const [roundId, winner, reward, timestamp] = data as [
-    bigint,
-    string,
-    bigint,
-    bigint
-  ]
-
-  return (
-    <tr>
-      <td style={cellStyle}>#{roundId.toString()}</td>
-      <td style={cellStyle}>{`${winner.slice(0, 6)}...${winner.slice(-4)}`}</td>
-      <td style={cellStyle}>{formatEther(reward)} ETH</td>
-      <td style={cellStyle}>
-        {new Date(Number(timestamp) * 1000).toLocaleString()}
-      </td>
-    </tr>
-  )
-}
-
-// styles
-const tableStyle: React.CSSProperties = {
-  width: '100%',
-  borderCollapse: 'collapse',
-  fontSize: '0.92rem',
-  fontFamily: 'Inter, sans-serif',
-}
-
-const headerRowStyle: React.CSSProperties = {
-  backgroundColor: '#eef2ff',
-}
-
-const cellStyle: React.CSSProperties = {
-  padding: '10px',
-  borderBottom: '1px solid #ddd',
-  textAlign: 'center',
-}
-
-const loadingCell: React.CSSProperties = {
-  ...cellStyle,
-  fontStyle: 'italic',
-  color: '#888',
-}
+const tableStyle = { width: '100%', borderCollapse: 'collapse', fontSize: '0.92rem' }
+const headerRowStyle = { backgroundColor: '#eef2ff' }
+const cellStyle = { padding: '10px', borderBottom: '1px solid #ddd', textAlign: 'center' }
+const btnStyle = { background: '#0052FF', color: '#fff', padding: '6px 14px', borderRadius: '8px', border: 'none', cursor: 'pointer' }

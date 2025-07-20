@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import ClickButton from './components/ClickButton'
 import CountdownTimer from './components/CountdownTimer'
 import GameInfoTable from './components/GameInfoTable'
-import RoundHistoryTable from './components/RoundHistoryTable'
+import RoundHistoryTable from './components/RoundHistoryTable' // ✅ نسخه جدید
 import ShareButton from './components/ShareButton'
 import Header from './components/Header'
 import Footer from './components/Footer'
