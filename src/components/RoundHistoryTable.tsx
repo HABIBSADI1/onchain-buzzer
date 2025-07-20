@@ -66,7 +66,7 @@ function HistoryRow({ id }: { id: number }) {
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'history',
-    args: [BigInt(id)],
+    args: [id.toString()]
     enabled: id >= 0,
   })
 
