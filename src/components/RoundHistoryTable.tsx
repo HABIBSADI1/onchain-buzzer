@@ -1,11 +1,8 @@
 import { useContractRead } from 'wagmi'
-import { BigNumber } from 'ethers'
-import { formatEther } from 'ethers/lib/utils'
+import { formatEther } from 'viem'
 
-// آدرس قرارداد
 const CONTRACT_ADDRESS = '0xFf2b0FA2ccd7Fa8f872c902628a1217C1B8fc1a3'
 
-// ABI قرارداد
 const abi = [
   {
     name: 'history',
@@ -28,7 +25,6 @@ const abi = [
   },
 ] as const
 
-// کامپوننت اصلی نمایش جدول
 export default function RoundHistoryTable() {
   const { data: totalRounds, isLoading } = useContractRead({
     address: CONTRACT_ADDRESS,
@@ -36,7 +32,7 @@ export default function RoundHistoryTable() {
     functionName: 'totalRounds',
   })
 
-  const total = totalRounds ? BigNumber.from(totalRounds).toNumber() : 0
+  const total = typeof totalRounds === 'bigint' ? Number(totalRounds) : 0
   const rounds = total > 0
     ? Array.from({ length: Math.min(total, 5) }, (_, i) => total - 1 - i)
     : []
@@ -53,28 +49,23 @@ export default function RoundHistoryTable() {
       </thead>
       <tbody>
         {isLoading ? (
-          <tr>
-            <td colSpan={4} style={loadingCell}>Loading rounds...</td>
-          </tr>
+          <tr><td colSpan={4} style={loadingCell}>Loading rounds...</td></tr>
         ) : rounds.length === 0 ? (
-          <tr>
-            <td colSpan={4} style={loadingCell}>No rounds yet</td>
-          </tr>
+          <tr><td colSpan={4} style={loadingCell}>No rounds yet</td></tr>
         ) : (
-          rounds.map(id => <HistoryRow key={id} id={id} />)
+          rounds.map((id) => <HistoryRow key={id} id={id} />)
         )}
       </tbody>
     </table>
   )
 }
 
-// کامپوننت هر ردیف تاریخچه
 function HistoryRow({ id }: { id: number }) {
   const { data, isError, isLoading } = useContractRead({
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'history',
-    args: [BigInt(id)], // ✅ اینجا مهمه
+    args: [BigInt(id)], // ✅ bigint صحیح و پشتیبانی‌شده توسط viem/wagmi
     enabled: id >= 0,
   })
 
@@ -82,7 +73,7 @@ function HistoryRow({ id }: { id: number }) {
     return <tr><td colSpan={4} style={loadingCell}>Loading...</td></tr>
   }
 
-  if (isError || !data) {
+  if (isError || !data || !Array.isArray(data)) {
     return (
       <tr>
         <td colSpan={4} style={{ ...cellStyle, color: 'red' }}>
@@ -92,36 +83,26 @@ function HistoryRow({ id }: { id: number }) {
     )
   }
 
-  try {
-    const { roundId, winner, reward, timestamp } = data as {
-      roundId: bigint
-      winner: string
-      reward: bigint
-      timestamp: bigint
-    }
+  const [roundId, winner, reward, timestamp] = data as [
+    bigint,
+    string,
+    bigint,
+    bigint
+  ]
 
-    return (
-      <tr>
-        <td style={cellStyle}>#{roundId.toString()}</td>
-        <td style={cellStyle}>{`${winner.slice(0, 6)}...${winner.slice(-4)}`}</td>
-        <td style={cellStyle}>{formatEther(reward)}</td>
-        <td style={cellStyle}>
-          {new Date(Number(timestamp) * 1000).toLocaleString()}
-        </td>
-      </tr>
-    )
-  } catch (err) {
-    return (
-      <tr>
-        <td colSpan={4} style={{ ...cellStyle, color: 'orange' }}>
-          ⚠️ Invalid round data
-        </td>
-      </tr>
-    )
-  }
+  return (
+    <tr>
+      <td style={cellStyle}>#{roundId.toString()}</td>
+      <td style={cellStyle}>{`${winner.slice(0, 6)}...${winner.slice(-4)}`}</td>
+      <td style={cellStyle}>{formatEther(reward)} ETH</td>
+      <td style={cellStyle}>
+        {new Date(Number(timestamp) * 1000).toLocaleString()}
+      </td>
+    </tr>
+  )
 }
 
-// 🎨 استایل‌ها
+// styles
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',
