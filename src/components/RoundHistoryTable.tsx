@@ -70,14 +70,11 @@ export default function RoundHistoryTable() {
 
 // کامپوننت هر ردیف تاریخچه
 function HistoryRow({ id }: { id: number }) {
-  // مشکل اصلی build در اینجا بود → args را جدا تعریف می‌کنیم
-  const args: readonly [string] = [id.toString()]
-
   const { data, isError, isLoading } = useContractRead({
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'history',
-    args,
+    args: [BigInt(id)], // ✅ اینجا مهمه
     enabled: id >= 0,
   })
 
@@ -97,10 +94,10 @@ function HistoryRow({ id }: { id: number }) {
 
   try {
     const { roundId, winner, reward, timestamp } = data as {
-      roundId: BigNumber
+      roundId: bigint
       winner: string
-      reward: BigNumber
-      timestamp: BigNumber
+      reward: bigint
+      timestamp: bigint
     }
 
     return (
@@ -108,7 +105,9 @@ function HistoryRow({ id }: { id: number }) {
         <td style={cellStyle}>#{roundId.toString()}</td>
         <td style={cellStyle}>{`${winner.slice(0, 6)}...${winner.slice(-4)}`}</td>
         <td style={cellStyle}>{formatEther(reward)}</td>
-        <td style={cellStyle}>{new Date(timestamp.toNumber() * 1000).toLocaleString()}</td>
+        <td style={cellStyle}>
+          {new Date(Number(timestamp) * 1000).toLocaleString()}
+        </td>
       </tr>
     )
   } catch (err) {
