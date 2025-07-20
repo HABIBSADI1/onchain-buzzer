@@ -2,8 +2,10 @@ import { useContractRead } from 'wagmi'
 import { BigNumber } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 
+// آدرس قرارداد
 const CONTRACT_ADDRESS = '0xFf2b0FA2ccd7Fa8f872c902628a1217C1B8fc1a3'
 
+// ABI قرارداد
 const abi = [
   {
     name: 'history',
@@ -26,6 +28,7 @@ const abi = [
   },
 ] as const
 
+// کامپوننت اصلی نمایش جدول
 export default function RoundHistoryTable() {
   const { data: totalRounds, isLoading } = useContractRead({
     address: CONTRACT_ADDRESS,
@@ -50,23 +53,31 @@ export default function RoundHistoryTable() {
       </thead>
       <tbody>
         {isLoading ? (
-          <tr><td colSpan={4} style={loadingCell}>Loading rounds...</td></tr>
+          <tr>
+            <td colSpan={4} style={loadingCell}>Loading rounds...</td>
+          </tr>
         ) : rounds.length === 0 ? (
-          <tr><td colSpan={4} style={loadingCell}>No rounds yet</td></tr>
+          <tr>
+            <td colSpan={4} style={loadingCell}>No rounds yet</td>
+          </tr>
         ) : (
-          rounds.map((id) => <HistoryRow key={id} id={id} />)
+          rounds.map(id => <HistoryRow key={id} id={id} />)
         )}
       </tbody>
     </table>
   )
 }
 
+// کامپوننت هر ردیف تاریخچه
 function HistoryRow({ id }: { id: number }) {
+  // مشکل اصلی build در اینجا بود → args را جدا تعریف می‌کنیم
+  const args: readonly [string] = [id.toString()]
+
   const { data, isError, isLoading } = useContractRead({
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'history',
-    args: [id.toString()],   // ← این خط اصلاح شده
+    args,
     enabled: id >= 0,
   })
 
@@ -97,9 +108,7 @@ function HistoryRow({ id }: { id: number }) {
         <td style={cellStyle}>#{roundId.toString()}</td>
         <td style={cellStyle}>{`${winner.slice(0, 6)}...${winner.slice(-4)}`}</td>
         <td style={cellStyle}>{formatEther(reward)}</td>
-        <td style={cellStyle}>
-          {new Date(timestamp.toNumber() * 1000).toLocaleString()}
-        </td>
+        <td style={cellStyle}>{new Date(timestamp.toNumber() * 1000).toLocaleString()}</td>
       </tr>
     )
   } catch (err) {
@@ -113,7 +122,7 @@ function HistoryRow({ id }: { id: number }) {
   }
 }
 
-// styles
+// 🎨 استایل‌ها
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',
