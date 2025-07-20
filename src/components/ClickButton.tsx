@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useContractWrite, useWaitForTransactionReceipt, useAccount } from 'wagmi'
+import { useContractWrite, useWaitForTransaction, useAccount } from 'wagmi'  // ✅ اصلاح شده
 import { parseEther, getAddress } from 'viem'
 import Explosion from './Explosion'
 import { useGameState } from '../hooks/useGameState'
@@ -48,17 +48,15 @@ export default function ClickButton() {
     }
   }
 
-  useWaitForTransactionReceipt({
+  useWaitForTransaction({
     hash: txHash,
-    query: {
-      enabled: !!txHash,
-      onSuccess: () => {
-        setStatus('success')
-        refetch()
-      },
-      onError: () => {
-        setStatus('error')
-      },
+    enabled: !!txHash,
+    onSuccess: () => {
+      setStatus('success')
+      refetch()
+    },
+    onError: () => {
+      setStatus('error')
     },
   })
 

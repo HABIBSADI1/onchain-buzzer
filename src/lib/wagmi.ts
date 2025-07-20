@@ -1,17 +1,58 @@
 // src/lib/wagmi.ts
-import { http, createConfig } from 'wagmi'
-import { base } from 'wagmi/chains'
-import { getDefaultConfig } from 'connectkit'
+import { chain, configureChains, createClient } from 'wagmi'
+import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
+import { publicProvider } from 'wagmi/providers/public'
+import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 
-// Base chain is already included in wagmi/chains as `base`
-
-export const config = createConfig(
-  getDefaultConfig({
-    appName: 'Onchain Buzzer',
-    chains: [base],
-    transports: {
-      [base.id]: http('https://mainnet.base.org')
+// تعریف Base chain به‌صورت سفارشی
+const baseChain = {
+  id: 8453,
+  name: 'Base',
+  network: 'base',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Base',
+    symbol: 'ETH',
+  },
+  rpcUrls: {
+    default: {
+      http: ['https://mainnet.base.org'],
     },
-    walletConnectProjectId: 'a450272bbef8c0cf05ad341f47cee9cd'
-  })
+    public: {
+      http: ['https://mainnet.base.org'],
+    },
+  },
+  blockExplorers: {
+    default: { name: 'Basescan', url: 'https://basescan.org' },
+  },
+  testnet: false,
+}
+
+// اتصال به شبکه
+const { provider, webSocketProvider } = configureChains(
+  [baseChain],
+  [
+    jsonRpcProvider({
+      rpc: () => ({ http: 'https://mainnet.base.org' }),
+    }),
+    publicProvider(),
+  ]
 )
+
+// ایجاد کلاینت wagmi
+export const config = createClient({
+  autoConnect: true,
+  provider,
+  webSocketProvider,
+  connectors: [
+    new MetaMaskConnector({ chains: [baseChain] }),
+    new WalletConnectConnector({
+      chains: [baseChain],
+      options: {
+        projectId: 'a450272bbef8c0cf05ad341f47cee9cd',
+        showQrModal: true,
+      },
+    }),
+  ],
+})

@@ -1,5 +1,6 @@
 import { useContractRead } from 'wagmi'
-import { formatEther } from 'viem'
+import { BigNumber } from 'ethers'
+import { formatEther } from 'ethers/lib/utils'
 
 const CONTRACT_ADDRESS = '0xFf2b0FA2ccd7Fa8f872c902628a1217C1B8fc1a3'
 
@@ -32,10 +33,10 @@ export default function RoundHistoryTable() {
     functionName: 'totalRounds',
   })
 
-  const total = Number(totalRounds || 0)
-const rounds = total > 0
-  ? Array.from({ length: Math.min(total, 5) }, (_, i) => total - 1 - i)
-  : []
+  const total = totalRounds ? BigNumber.from(totalRounds).toNumber() : 0
+  const rounds = total > 0
+    ? Array.from({ length: Math.min(total, 5) }, (_, i) => total - 1 - i)
+    : []
 
   return (
     <table style={tableStyle}>
@@ -53,7 +54,7 @@ const rounds = total > 0
         ) : rounds.length === 0 ? (
           <tr><td colSpan={4} style={loadingCell}>No rounds yet</td></tr>
         ) : (
-          rounds.map(id => <HistoryRow key={id} id={id} />)
+          rounds.map((id) => <HistoryRow key={id} id={id} />)
         )}
       </tbody>
     </table>
@@ -65,43 +66,54 @@ function HistoryRow({ id }: { id: number }) {
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'history',
-    args: [BigInt(id)],
+    args: [BigNumber.from(id)],
     enabled: id >= 0,
   })
 
   if (isLoading) {
-    return (
-      <tr><td colSpan={4} style={loadingCell}>Loading...</td></tr>
-    )
+    return <tr><td colSpan={4} style={loadingCell}>Loading...</td></tr>
   }
 
   if (isError || !data) {
     return (
-      <tr><td colSpan={4} style={{ ...cellStyle, color: 'red' }}>❌ Error loading round #{id}</td></tr>
+      <tr>
+        <td colSpan={4} style={{ ...cellStyle, color: 'red' }}>
+          ❌ Error loading round #{id}
+        </td>
+      </tr>
     )
   }
 
-  const { roundId, winner, reward, timestamp } = data as any
+  try {
+    const { roundId, winner, reward, timestamp } = data as {
+      roundId: BigNumber
+      winner: string
+      reward: BigNumber
+      timestamp: BigNumber
+    }
 
-  if (
-    roundId === undefined ||
-    winner === undefined ||
-    reward === undefined ||
-    timestamp === undefined
-  ) {
-    return null // skip invalid rows silently
+    return (
+      <tr>
+        <td style={cellStyle}>#{roundId.toString()}</td>
+        <td style={cellStyle}>{`${winner.slice(0, 6)}...${winner.slice(-4)}`}</td>
+        <td style={cellStyle}>{formatEther(reward)}</td>
+        <td style={cellStyle}>
+          {new Date(timestamp.toNumber() * 1000).toLocaleString()}
+        </td>
+      </tr>
+    )
+  } catch (err) {
+    return (
+      <tr>
+        <td colSpan={4} style={{ ...cellStyle, color: 'orange' }}>
+          ⚠️ Invalid round data
+        </td>
+      </tr>
+    )
   }
-
-  return (
-    <tr>
-      <td style={cellStyle}>#{roundId.toString()}</td>
-      <td style={cellStyle}>{`${winner.slice(0, 6)}...${winner.slice(-4)}`}</td>
-      <td style={cellStyle}>{formatEther(reward)}</td>
-      <td style={cellStyle}>{new Date(Number(timestamp) * 1000).toLocaleString()}</td>
-    </tr>
-  )
 }
 
+// styles
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',
