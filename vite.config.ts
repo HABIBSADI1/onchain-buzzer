@@ -8,18 +8,21 @@ export default defineConfig({
     alias: {
       process: 'rollup-plugin-node-polyfills/polyfills/process-es6',
       buffer: 'rollup-plugin-node-polyfills/polyfills/buffer-es6',
-      crypto: 'rollup-plugin-node-polyfills/polyfills/crypto'
+      crypto: 'rollup-plugin-node-polyfills/polyfills/crypto',
     },
+  },
+  define: {
+    global: 'globalThis' // ✅ اضافه‌شده برای حل خطای global is not defined
   },
   optimizeDeps: {
     include: ['buffer', 'process'],
-    exclude: ['@base-org/account'] // جلوگیری از resolve آن در Vite
+    exclude: ['@base-org/account']
   },
   build: {
     target: 'esnext',
     rollupOptions: {
       plugins: [rollupNodePolyfills()],
-      external: ['@base-org/account'] // عدم باندل این پکیج (اختیاری)
+      external: ['@base-org/account']
     },
   },
 });

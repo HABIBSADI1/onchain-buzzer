@@ -33,7 +33,9 @@ export default function RoundHistoryTable() {
   })
 
   const total = Number(totalRounds || 0)
-  const rounds = total > 0 ? Array.from({ length: total }, (_, i) => total - 1 - i) : []
+const rounds = total > 0
+  ? Array.from({ length: Math.min(total, 5) }, (_, i) => total - 1 - i)
+  : []
 
   return (
     <table style={tableStyle}>
