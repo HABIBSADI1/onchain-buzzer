@@ -132,14 +132,9 @@ async function fetchRecentRounds() {
 
     for (let i = totalRounds - 1n; i >= from; i--) {
       try {
-        const round = await contract.read.getRound([i])
-        if (round.timestamp !== 0n) {
-          rounds.push({
-            roundId: round.roundId,
-            winner: round.winner,
-            reward: round.reward,
-            timestamp: round.timestamp
-          })
+        const [roundId, winner, reward, timestamp] = await contract.read.getRound([i])
+        if (timestamp !== 0n) {
+          rounds.push({ roundId, winner, reward, timestamp })
         }
       } catch (e) {
         console.warn(`⚠️ Could not fetch round ${i}:`, e)
@@ -152,6 +147,7 @@ async function fetchRecentRounds() {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
 }
+
 
 // ✅ Express API server
 const app = express()
