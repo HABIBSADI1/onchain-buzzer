@@ -1,20 +1,13 @@
 import { useEffect, useState } from 'react'
-import { createPublicClient, http } from 'viem'
-import { base } from 'viem/chains'
-import abi from '../abi.json'
 import { formatEther } from 'viem'
 
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS as `0x${string}`
-const RPC_URL = import.meta.env.VITE_RPC_URL!
-
 type RoundLog = {
-  roundId: bigint
-  winner: `0x${string}`
-  reward: bigint
-  timestamp: bigint
+  roundId: string
+  winner: string
+  reward: string
+  timestamp: string
 }
 
-const BLOCK_STEP = 500n
 const PAGE_SIZE = 5
 
 export default function RoundHistoryTableFromLogs() {
@@ -23,50 +16,20 @@ export default function RoundHistoryTableFromLogs() {
   const [page, setPage] = useState(0)
 
   useEffect(() => {
-    const fetchLogs = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true)
-
-        const client = createPublicClient({
-          chain: base,
-          transport: http(RPC_URL),
-        })
-
-        const latestBlock = await client.getBlockNumber()
-        let allLogs: RoundLog[] = []
-
-        // حرکت از بلاک پایین به بالا در محدوده‌های 500تایی
-        for (
-          let fromBlock = 0n;
-          fromBlock <= latestBlock && allLogs.length < PAGE_SIZE * 5;
-          fromBlock += BLOCK_STEP
-        ) {
-          const toBlock = fromBlock + BLOCK_STEP < latestBlock ? fromBlock + BLOCK_STEP : latestBlock
-
-          const logs = await client.getLogs({
-            address: CONTRACT_ADDRESS,
-            abi,
-            eventName: 'RoundSettled',
-            fromBlock,
-            toBlock,
-          })
-
-          const parsed = logs.map(log => log.args as RoundLog)
-          allLogs = [...parsed, ...allLogs]
-
-          if (allLogs.length >= PAGE_SIZE * 5) break
-        }
-
-        allLogs.sort((a, b) => Number(b.roundId - a.roundId))
-        setRounds(allLogs)
+        const res = await fetch('https://onchain-buzzer-production.up.railway.app/rounds') // 👈 این لینک رو دقیق بذار
+        const data = await res.json()
+        setRounds(data)
       } catch (err) {
-        console.error('❌ Error fetching logs:', err)
+        console.error('❌ Error fetching rounds from API:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchLogs()
+    fetchData()
   }, [])
 
   const paginated = rounds.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -94,9 +57,9 @@ export default function RoundHistoryTableFromLogs() {
           ) : (
             paginated.map((r, i) => (
               <tr key={i}>
-                <td style={cellStyle}>#{r.roundId.toString()}</td>
+                <td style={cellStyle}>#{r.roundId}</td>
                 <td style={cellStyle}>{shorten(r.winner)}</td>
-                <td style={cellStyle}>{formatEther(r.reward)} ETH</td>
+                <td style={cellStyle}>{formatEther(BigInt(r.reward))} ETH</td>
                 <td style={cellStyle}>{formatTime(Number(r.timestamp))}</td>
               </tr>
             ))
