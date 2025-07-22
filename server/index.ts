@@ -114,29 +114,42 @@ async function runPayoutWatcher() {
   }
 }
 
-// ✅ Fetch events and cache to data.json
+// ✅ Fetch logs with 500-block chunks
 async function fetchRecentRounds() {
   try {
     const latestBlock = await publicClient.getBlockNumber()
-    console.log(`📦 Scanning logs up to block ${latestBlock}`)
+    const rounds: any[] = []
 
-    const logs = await publicClient.getLogs({
-      address: CONTRACT_ADDRESS,
-      abi: eventAbi,
-      eventName: 'RoundSettled',
-      fromBlock: latestBlock - 2000n,
-      toBlock: latestBlock
-    } as any)
+    for (
+      let fromBlock = latestBlock - 2000n;
+      fromBlock <= latestBlock;
+      fromBlock += BLOCK_STEP
+    ) {
+      const toBlock = fromBlock + BLOCK_STEP < latestBlock ? fromBlock + BLOCK_STEP : latestBlock
 
-    const parsed = logs.map((log: any) => ({
-      roundId: log.args.roundId,
-      winner: log.args.winner,
-      reward: log.args.reward,
-      timestamp: log.args.timestamp
-    }))
+      const logs = await publicClient.getLogs({
+        address: CONTRACT_ADDRESS,
+        abi: eventAbi,
+        eventName: 'RoundSettled',
+        fromBlock,
+        toBlock
+      } as any)
 
-    const sorted = parsed.sort((a, b) => Number(b.roundId - a.roundId))
-    await fs.writeFile('server/data.json', JSON.stringify(sorted.slice(0, MAX_ROUNDS), null, 2))
+      const parsed = logs.map((log: any) => ({
+        roundId: log.args.roundId,
+        winner: log.args.winner,
+        reward: log.args.reward,
+        timestamp: log.args.timestamp
+      }))
+
+      rounds.push(...parsed)
+    }
+
+    const sorted = rounds
+      .sort((a, b) => Number(b.roundId - a.roundId))
+      .slice(0, MAX_ROUNDS)
+
+    await fs.writeFile('server/data.json', JSON.stringify(sorted, null, 2))
     console.log(`📥 Cached ${sorted.length} rounds → server/data.json`)
   } catch (e) {
     console.error('❌ Error in fetchRecentRounds():', e)
