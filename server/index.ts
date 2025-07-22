@@ -101,9 +101,21 @@ async function fetchRecentRounds() {
     const latestBlock = await publicClient.getBlockNumber()
     console.log(`📦 Scanning logs up to block ${latestBlock}`)
 
-    const logs = await publicClient.getLogs<typeof abi, 'RoundSettled'>({
+    const roundSettledEventAbi = [{
+      type: 'event',
+      name: 'RoundSettled',
+      inputs: [
+        { name: 'roundId', type: 'uint256', indexed: true },
+        { name: 'winner', type: 'address', indexed: true },
+        { name: 'reward', type: 'uint256', indexed: false },
+        { name: 'timestamp', type: 'uint256', indexed: false }
+      ],
+      anonymous: false
+    }] as const
+
+    const logs = await publicClient.getLogs<typeof roundSettledEventAbi, 'RoundSettled'>({
       address: CONTRACT_ADDRESS,
-      abi,
+      abi: roundSettledEventAbi,
       eventName: 'RoundSettled',
       fromBlock: latestBlock - 2000n,
       toBlock: latestBlock
@@ -123,5 +135,6 @@ async function fetchRecentRounds() {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
 }
+
 
 runPayoutWatcher()
