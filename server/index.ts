@@ -10,20 +10,20 @@ import {
 import { base } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 
-// ✅ متغیرهای ENV
+// ✅ ENV config
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 
 if (!CONTRACT_ADDRESS || !RPC_URL || !PRIVATE_KEY) {
-  console.error('❌ Missing required environment variables')
+  console.error('❌ Missing env vars')
   process.exit(1)
 }
 
 const BLOCK_STEP = 500n
 const MAX_ROUNDS = 25
 
-// ✅ ABI کامل
+// ✅ ABI inline
 const abi = [
   {
     type: 'function',
@@ -59,9 +59,9 @@ const abi = [
   }
 ] as const
 
-const eventAbi: Abi = [abi[2]] // فقط event برای getLogs
+const eventAbi: Abi = [abi[2]] // فقط event مخصوص getLogs()
 
-// ✅ اتصال به کلاینت‌ها
+// ✅ Clients
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
@@ -81,7 +81,7 @@ const contract = getContract({
   client: { public: publicClient, wallet: walletClient }
 })
 
-// ✅ اجرای کرون اصلی
+// ✅ Cron Job Main
 async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
 
@@ -105,19 +105,18 @@ async function runPayoutWatcher() {
   }
 }
 
-// ✅ دریافت راندهای اخیر و ذخیره به فایل
+// ✅ Fetch Events
 async function fetchRecentRounds() {
   try {
     const latestBlock = await publicClient.getBlockNumber()
     console.log(`📦 Scanning logs up to block ${latestBlock}`)
 
-    const logs = await publicClient.getLogs({
+    const logs = await publicClient.getLogs<typeof eventAbi, 'RoundSettled'>({
       address: CONTRACT_ADDRESS,
       abi: eventAbi,
       eventName: 'RoundSettled',
       fromBlock: latestBlock - 2000n,
-      toBlock: latestBlock,
-      strict: true // 👈 مهم برای دریافت log.args
+      toBlock: latestBlock
     })
 
     const parsed = logs.map((log) => ({
@@ -135,5 +134,5 @@ async function fetchRecentRounds() {
   }
 }
 
-// 🏁 اجرا
+// 🏁 Start
 runPayoutWatcher()
