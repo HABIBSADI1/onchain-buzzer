@@ -125,7 +125,9 @@ async function fetchRecentRounds() {
       fromBlock <= latestBlock;
       fromBlock += BLOCK_STEP
     ) {
-      const toBlock = fromBlock + BLOCK_STEP < latestBlock ? fromBlock + BLOCK_STEP : latestBlock
+      const toBlock = fromBlock + BLOCK_STEP - 1n < latestBlock
+        ? fromBlock + BLOCK_STEP - 1n
+        : latestBlock
 
       const logs = await publicClient.getLogs({
         address: CONTRACT_ADDRESS,
