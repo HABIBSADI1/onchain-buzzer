@@ -1,5 +1,7 @@
 import 'dotenv/config'
 import fs from 'fs/promises'
+import express from 'express'
+import cors from 'cors'
 import {
   createWalletClient,
   createPublicClient,
@@ -23,7 +25,7 @@ if (!CONTRACT_ADDRESS || !RPC_URL || !PRIVATE_KEY) {
 const BLOCK_STEP = 500n
 const MAX_ROUNDS = 25
 
-// ✅ ABI inline
+// ✅ ABI
 const abi = [
   {
     type: 'function',
@@ -59,9 +61,9 @@ const abi = [
   }
 ] as const
 
-const eventAbi: Abi = [abi[2]] // فقط event مخصوص getLogs()
+const eventAbi: Abi = [abi[2]]
 
-// ✅ Clients
+// ✅ viem clients
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
@@ -81,7 +83,7 @@ const contract = getContract({
   client: { public: publicClient, wallet: walletClient }
 })
 
-// ✅ Cron Job Main
+// ✅ MAIN logic for cron
 async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
 
@@ -105,7 +107,7 @@ async function runPayoutWatcher() {
   }
 }
 
-// ✅ Fetch Events
+// ✅ fetch RoundSettled events
 async function fetchRecentRounds() {
   try {
     const latestBlock = await publicClient.getBlockNumber()
@@ -134,6 +136,24 @@ async function fetchRecentRounds() {
   }
 }
 
-
-// 🏁 Start
 runPayoutWatcher()
+
+// ✅ EXPRESS API to expose /data.json
+const app = express()
+app.use(cors())
+
+app.get('/rounds', async (req, res) => {
+  try {
+    const data = await fs.readFile('server/data.json', 'utf-8')
+    res.setHeader('Content-Type', 'application/json')
+    res.send(data)
+  } catch (err) {
+    res.status(500).json({ error: 'Could not read data.json' })
+  }
+})
+
+// ✅ Start API server
+const PORT = process.env.PORT || 3000
+app.listen(PORT, () => {
+  console.log(`📡 Server running at http://localhost:${PORT}`)
+})
