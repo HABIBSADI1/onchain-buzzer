@@ -6,5 +6,6 @@
     "resolveJsonModule": true,
     "strict": true,
     "outDir": "dist"
-  }
+  },
+  "exclude": ["api.ts"]
 }
