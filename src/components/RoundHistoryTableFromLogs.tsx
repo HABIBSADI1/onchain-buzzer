@@ -9,7 +9,7 @@ type RoundLog = {
 }
 
 const PAGE_SIZE = 5
-const API_URL = 'https://onchain-buzzer-production.up.railway.app/rounds'
+const API_URL = 'https://onchain-buzzer-production.up.railway.app/rounds' // 👈 دقت کن دقیقاً همین URL باشه
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
@@ -19,9 +19,11 @@ export default function RoundHistoryTableFromLogs() {
   useEffect(() => {
     const fetchRounds = async () => {
       try {
+        setLoading(true)
         const res = await fetch(API_URL)
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
         const data = await res.json()
+        if (!Array.isArray(data)) throw new Error('Invalid response format')
         setRounds(data)
       } catch (err) {
         console.error('❌ Failed to load rounds from API:', err)
@@ -53,7 +55,7 @@ export default function RoundHistoryTableFromLogs() {
             </tr>
           ) : paginated.length === 0 ? (
             <tr>
-              <td colSpan={4} style={cellStyle}>No rounds settled yet.</td>
+              <td colSpan={4} style={cellStyle}>No rounds available.</td>
             </tr>
           ) : (
             paginated.map((r, i) => (
@@ -89,7 +91,6 @@ export default function RoundHistoryTableFromLogs() {
   )
 }
 
-// ✅ Utils
 const shorten = (addr: string) => addr.slice(0, 6) + '...' + addr.slice(-4)
 
 const formatTime = (ts: number) =>
@@ -98,7 +99,6 @@ const formatTime = (ts: number) =>
     timeStyle: 'short',
   })
 
-// ✅ Styles
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',
