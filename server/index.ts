@@ -101,15 +101,15 @@ async function fetchRecentRounds() {
     const latestBlock = await publicClient.getBlockNumber()
     console.log(`📦 Scanning logs up to block ${latestBlock}`)
 
-    const logs = await publicClient.getLogs({
+    const logs = await publicClient.getLogs<typeof abi, 'RoundSettled'>({
       address: CONTRACT_ADDRESS,
-      eventName: 'RoundSettled',
       abi,
+      eventName: 'RoundSettled',
       fromBlock: latestBlock - 2000n,
       toBlock: latestBlock
     })
 
-    const parsed = logs.map(log => ({
+    const parsed = logs.map((log) => ({
       roundId: log.args.roundId,
       winner: log.args.winner,
       reward: log.args.reward,
