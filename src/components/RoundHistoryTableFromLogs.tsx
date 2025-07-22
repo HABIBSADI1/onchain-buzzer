@@ -19,7 +19,8 @@ export default function RoundHistoryTableFromLogs() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const res = await fetch('https://onchain-buzzer-production.up.railway.app/rounds') // 👈 این لینک رو دقیق بذار
+        const res = await fetch('https://onchain-buzzer-production.up.railway.app/rounds') // 👈 آدرس کامل API
+        if (!res.ok) throw new Error('Failed to fetch')
         const data = await res.json()
         setRounds(data)
       } catch (err) {
