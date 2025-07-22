@@ -111,15 +111,15 @@ async function fetchRecentRounds() {
     const latestBlock = await publicClient.getBlockNumber()
     console.log(`📦 Scanning logs up to block ${latestBlock}`)
 
-    const logs = await publicClient.getLogs<typeof eventAbi, 'RoundSettled'>({
+    const logs = await publicClient.getLogs({
       address: CONTRACT_ADDRESS,
       abi: eventAbi,
       eventName: 'RoundSettled',
       fromBlock: latestBlock - 2000n,
       toBlock: latestBlock
-    })
+    } as any)
 
-    const parsed = logs.map((log) => ({
+    const parsed = logs.map((log: any) => ({
       roundId: log.args.roundId,
       winner: log.args.winner,
       reward: log.args.reward,
@@ -133,6 +133,7 @@ async function fetchRecentRounds() {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
 }
+
 
 // 🏁 Start
 runPayoutWatcher()
