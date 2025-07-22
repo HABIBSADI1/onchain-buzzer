@@ -9,6 +9,7 @@ type RoundLog = {
 }
 
 const PAGE_SIZE = 5
+const API_URL = 'https://onchain-buzzer-production.up.railway.app/rounds'
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
@@ -16,21 +17,20 @@ export default function RoundHistoryTableFromLogs() {
   const [page, setPage] = useState(0)
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchRounds = async () => {
       try {
-        setLoading(true)
-        const res = await fetch('https://onchain-buzzer-production.up.railway.app/rounds') // 👈 آدرس کامل API
-        if (!res.ok) throw new Error('Failed to fetch')
+        const res = await fetch(API_URL)
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
         const data = await res.json()
         setRounds(data)
       } catch (err) {
-        console.error('❌ Error fetching rounds from API:', err)
+        console.error('❌ Failed to load rounds from API:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchData()
+    fetchRounds()
   }, [])
 
   const paginated = rounds.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -77,9 +77,7 @@ export default function RoundHistoryTableFromLogs() {
             Page {page + 1}
           </span>
           <button
-            onClick={() =>
-              setPage(p => (p + 1) * PAGE_SIZE < rounds.length ? p + 1 : p)
-            }
+            onClick={() => setPage(p => (p + 1) * PAGE_SIZE < rounds.length ? p + 1 : p)}
             disabled={(page + 1) * PAGE_SIZE >= rounds.length}
             style={btnStyle}
           >
@@ -91,6 +89,7 @@ export default function RoundHistoryTableFromLogs() {
   )
 }
 
+// ✅ Utils
 const shorten = (addr: string) => addr.slice(0, 6) + '...' + addr.slice(-4)
 
 const formatTime = (ts: number) =>
@@ -99,6 +98,7 @@ const formatTime = (ts: number) =>
     timeStyle: 'short',
   })
 
+// ✅ Styles
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',
