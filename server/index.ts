@@ -6,8 +6,7 @@ import {
   createWalletClient,
   createPublicClient,
   http,
-  getContract,
-  type Abi
+  getContract
 } from 'viem'
 import { base } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -22,10 +21,9 @@ if (!CONTRACT_ADDRESS || !RPC_URL || !PRIVATE_KEY) {
   process.exit(1)
 }
 
-const BLOCK_STEP = 500n
 const MAX_ROUNDS = 25
 
-// ✅ ABI from actual contract
+// ✅ ABI از storage
 const abi = [
   {
     type: 'function',
@@ -55,19 +53,25 @@ const abi = [
     outputs: []
   },
   {
-    type: 'event',
-    name: 'RoundSettled',
-    inputs: [
-      { name: 'roundId', type: 'uint256', indexed: true },
-      { name: 'winner', type: 'address', indexed: true },
-      { name: 'reward', type: 'uint256', indexed: false },
-      { name: 'timestamp', type: 'uint256', indexed: false }
-    ],
-    anonymous: false
+    type: 'function',
+    name: 'totalRounds',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }]
+  },
+  {
+    type: 'function',
+    name: 'getRound',
+    stateMutability: 'view',
+    inputs: [{ name: 'id', type: 'uint256' }],
+    outputs: [
+      { name: 'roundId', type: 'uint256' },
+      { name: 'winner', type: 'address' },
+      { name: 'reward', type: 'uint256' },
+      { name: 'timestamp', type: 'uint256' }
+    ]
   }
 ] as const
-
-const eventAbi: Abi = [abi[3]]
 
 const account = privateKeyToAccount(PRIVATE_KEY)
 
@@ -88,7 +92,7 @@ const contract = getContract({
   client: { public: publicClient, wallet: walletClient }
 })
 
-// ✅ Main cron logic
+// ✅ Cron Job Main Function
 async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
 
@@ -114,54 +118,42 @@ async function runPayoutWatcher() {
   }
 }
 
-// ✅ Fetch logs with 500-block chunks
+// ✅ خواندن مستقیم راندهای قبلی از storage کانترکت
 async function fetchRecentRounds() {
   try {
-    const latestBlock = await publicClient.getBlockNumber()
-    const rounds: any[] = []
-
-    // ✅ اطمینان از وجود پوشه server/
     await fs.mkdir('server', { recursive: true })
 
-    for (
-      let fromBlock = latestBlock - 2000n;
-      fromBlock <= latestBlock;
-      fromBlock += BLOCK_STEP
-    ) {
-      const toBlock = fromBlock + 499n < latestBlock
-        ? fromBlock + 499n
-        : latestBlock
+    const totalRounds: bigint = await contract.read.totalRounds()
+    const rounds: any[] = []
 
-      const logs = await publicClient.getLogs({
-        address: CONTRACT_ADDRESS,
-        abi: eventAbi,
-        eventName: 'RoundSettled',
-        fromBlock,
-        toBlock
-      } as any)
+    const from = totalRounds > BigInt(MAX_ROUNDS)
+      ? totalRounds - BigInt(MAX_ROUNDS)
+      : 0n
 
-      const parsed = logs.map((log: any) => ({
-        roundId: log.args.roundId,
-        winner: log.args.winner,
-        reward: log.args.reward,
-        timestamp: log.args.timestamp
-      }))
-
-      rounds.push(...parsed)
+    for (let i = totalRounds - 1n; i >= from; i--) {
+      try {
+        const round = await contract.read.getRound([i])
+        if (round.timestamp !== 0n) {
+          rounds.push({
+            roundId: round.roundId,
+            winner: round.winner,
+            reward: round.reward,
+            timestamp: round.timestamp
+          })
+        }
+      } catch (e) {
+        console.warn(`⚠️ Could not fetch round ${i}:`, e)
+      }
     }
 
-    const sorted = rounds
-      .sort((a, b) => Number(b.roundId - a.roundId))
-      .slice(0, MAX_ROUNDS)
-
-    await fs.writeFile('server/data.json', JSON.stringify(sorted, null, 2))
-    console.log(`📥 Cached ${sorted.length} rounds → server/data.json`)
+    await fs.writeFile('server/data.json', JSON.stringify(rounds, null, 2))
+    console.log(`📥 Cached ${rounds.length} rounds → server/data.json`)
   } catch (e) {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
 }
 
-// ✅ API to serve /rounds
+// ✅ Express API server
 const app = express()
 app.use(cors())
 
@@ -180,5 +172,5 @@ app.listen(PORT, () => {
   console.log(`📡 Server running at http://localhost:${PORT}`)
 })
 
-// ✅ Start job
+// ✅ Start cron job
 runPayoutWatcher()
