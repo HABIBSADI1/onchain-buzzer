@@ -141,8 +141,16 @@ async function fetchRecentRounds() {
       }
     }
 
-    await fs.writeFile('server/data.json', JSON.stringify(rounds, null, 2))
-    console.log(`📥 Cached ${rounds.length} rounds → server/data.json`)
+    // ✅ تبدیل BigInt به string برای JSON
+    const serialized = rounds.map(r => ({
+      roundId: r.roundId.toString(),
+      winner: r.winner,
+      reward: r.reward.toString(),
+      timestamp: r.timestamp.toString()
+    }))
+
+    await fs.writeFile('server/data.json', JSON.stringify(serialized, null, 2))
+    console.log(`📥 Cached ${serialized.length} rounds → server/data.json`)
   } catch (e) {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
