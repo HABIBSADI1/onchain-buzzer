@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { createWalletClient, createPublicClient, http, getContract, parseAbi } from 'viem'
+import { createWalletClient, createPublicClient, http, getContract } from 'viem'
 import { base } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 import fs from 'fs/promises'
@@ -17,14 +17,42 @@ if (!CONTRACT_ADDRESS || !RPC_URL || !PRIVATE_KEY) {
 const BLOCK_STEP = 500n
 const MAX_ROUNDS = 25
 
-// ✅ ABI → `as const` for typing
-const abi = parseAbi([
-  'function getGameState() view returns (uint256 roundId, address lastPlayer, uint256 pot, uint256 timeRemaining, uint256 clicks, bool payoutDone)',
-  'function forcePayout()',
-  'event RoundSettled(uint256 roundId, address winner, uint256 reward, uint256 timestamp)'
-]) as const
+// ✅ ABI literal برای TypeScript support
+const abi = [
+  {
+    "type": "function",
+    "name": "getGameState",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      { "name": "roundId", "type": "uint256" },
+      { "name": "lastPlayer", "type": "address" },
+      { "name": "pot", "type": "uint256" },
+      { "name": "timeRemaining", "type": "uint256" },
+      { "name": "clicks", "type": "uint256" },
+      { "name": "payoutDone", "type": "bool" }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "forcePayout",
+    "stateMutability": "nonpayable",
+    "inputs": [],
+    "outputs": []
+  },
+  {
+    "type": "event",
+    "name": "RoundSettled",
+    "inputs": [
+      { "name": "roundId", "type": "uint256", "indexed": true },
+      { "name": "winner", "type": "address", "indexed": true },
+      { "name": "reward", "type": "uint256", "indexed": false },
+      { "name": "timestamp", "type": "uint256", "indexed": false }
+    ],
+    "anonymous": false
+  }
+] as const
 
-// 🧠 اتصال به کلاینت‌ها
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
@@ -41,10 +69,9 @@ const walletClient = createWalletClient({
 const contract = getContract({
   address: CONTRACT_ADDRESS,
   abi,
-  client: { public: publicClient, wallet: walletClient },
+  client: { public: publicClient, wallet: walletClient }
 })
 
-// ✅ اجرای cron logic
 async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
 
@@ -69,40 +96,29 @@ async function runPayoutWatcher() {
   }
 }
 
-// ✅ جمع‌آوری راندها
 async function fetchRecentRounds() {
   try {
     const latestBlock = await publicClient.getBlockNumber()
     console.log(`📦 Scanning logs up to block ${latestBlock}`)
 
-    let rounds: any[] = []
+    const logs = await publicClient.getLogs({
+      address: CONTRACT_ADDRESS,
+      eventName: 'RoundSettled',
+      abi,
+      fromBlock: latestBlock - 2000n,
+      toBlock: latestBlock
+    })
 
-    for (let fromBlock = 0n; fromBlock <= latestBlock && rounds.length < MAX_ROUNDS; fromBlock += BLOCK_STEP) {
-      const toBlock = fromBlock + BLOCK_STEP < latestBlock ? fromBlock + BLOCK_STEP : latestBlock
+    const parsed = logs.map(log => ({
+      roundId: log.args.roundId,
+      winner: log.args.winner,
+      reward: log.args.reward,
+      timestamp: log.args.timestamp
+    }))
 
-      const logs = await publicClient.getLogs({
-        address: CONTRACT_ADDRESS,
-        abi,
-        eventName: 'RoundSettled',
-        fromBlock,
-        toBlock,
-      })
-
-      const parsed = logs.map(log => ({
-        roundId: log.args.roundId,
-        winner: log.args.winner,
-        reward: log.args.reward,
-        timestamp: log.args.timestamp,
-      }))
-
-      rounds = [...parsed, ...rounds]
-    }
-
-    rounds.sort((a, b) => Number(b.roundId - a.roundId))
-
-    const outPath = 'server/data.json'
-    await fs.writeFile(outPath, JSON.stringify(rounds.slice(0, MAX_ROUNDS), null, 2))
-    console.log(`📥 Cached ${rounds.length} rounds → ${outPath}`)
+    const sorted = parsed.sort((a, b) => Number(b.roundId - a.roundId))
+    await fs.writeFile('server/data.json', JSON.stringify(sorted.slice(0, MAX_ROUNDS), null, 2))
+    console.log(`📥 Cached ${sorted.length} rounds → server/data.json`)
   } catch (e) {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
