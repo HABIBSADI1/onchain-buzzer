@@ -17,13 +17,14 @@ if (!CONTRACT_ADDRESS || !RPC_URL || !PRIVATE_KEY) {
 const BLOCK_STEP = 500n
 const MAX_ROUNDS = 25
 
-// ✅ ABI فقط برای لاگ‌ها
-const parsedAbi = parseAbi([
-  'event RoundSettled(uint256 roundId, address winner, uint256 reward, uint256 timestamp)',
+// ✅ ABI → `as const` for typing
+const abi = parseAbi([
   'function getGameState() view returns (uint256 roundId, address lastPlayer, uint256 pot, uint256 timeRemaining, uint256 clicks, bool payoutDone)',
-  'function forcePayout()'
-])
+  'function forcePayout()',
+  'event RoundSettled(uint256 roundId, address winner, uint256 reward, uint256 timestamp)'
+]) as const
 
+// 🧠 اتصال به کلاینت‌ها
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
@@ -39,7 +40,7 @@ const walletClient = createWalletClient({
 
 const contract = getContract({
   address: CONTRACT_ADDRESS,
-  abi: parsedAbi,
+  abi,
   client: { public: publicClient, wallet: walletClient },
 })
 
@@ -48,13 +49,8 @@ async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
 
   try {
-    const game = await contract.read.getGameState() as {
-      roundId: bigint
-      timeRemaining: bigint
-      payoutDone: boolean
-    }
+    const [roundId, , , timeRemaining, , payoutDone] = await contract.read.getGameState()
 
-    const { roundId, timeRemaining, payoutDone } = game
     console.log(`🕐 Round #${roundId} → timeRemaining: ${timeRemaining}, payoutDone: ${payoutDone}`)
 
     if (timeRemaining === 0n && !payoutDone) {
@@ -73,6 +69,7 @@ async function runPayoutWatcher() {
   }
 }
 
+// ✅ جمع‌آوری راندها
 async function fetchRecentRounds() {
   try {
     const latestBlock = await publicClient.getBlockNumber()
@@ -85,23 +82,24 @@ async function fetchRecentRounds() {
 
       const logs = await publicClient.getLogs({
         address: CONTRACT_ADDRESS,
-        abi: parsedAbi,
+        abi,
         eventName: 'RoundSettled',
         fromBlock,
-        toBlock
+        toBlock,
       })
 
       const parsed = logs.map(log => ({
-        roundId: log.args?.roundId,
-        winner: log.args?.winner,
-        reward: log.args?.reward,
-        timestamp: log.args?.timestamp
+        roundId: log.args.roundId,
+        winner: log.args.winner,
+        reward: log.args.reward,
+        timestamp: log.args.timestamp,
       }))
 
       rounds = [...parsed, ...rounds]
     }
 
     rounds.sort((a, b) => Number(b.roundId - a.roundId))
+
     const outPath = 'server/data.json'
     await fs.writeFile(outPath, JSON.stringify(rounds.slice(0, MAX_ROUNDS), null, 2))
     console.log(`📥 Cached ${rounds.length} rounds → ${outPath}`)
@@ -110,5 +108,4 @@ async function fetchRecentRounds() {
   }
 }
 
-// 🏁 اجرای اولیه
 runPayoutWatcher()
