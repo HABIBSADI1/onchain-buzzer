@@ -10,6 +10,11 @@ const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 
+if (!CONTRACT_ADDRESS || !RPC_URL || !PRIVATE_KEY) {
+  console.error("❌ Missing required env variables: VITE_CONTRACT_ADDRESS, VITE_RPC_URL, PRIVATE_KEY")
+  process.exit(1)
+}
+
 const BLOCK_STEP = 500n
 const MAX_ROUNDS = 25
 
@@ -35,6 +40,9 @@ const contract = getContract({
 
 // ✅ تسویه خودکار
 async function runPayoutWatcher() {
+  const start = new Date().toISOString()
+  console.log(`\n🚀 Job started at ${start}`)
+
   try {
     const game = await contract.read.getGameState()
     const timeRemaining = game.timeRemaining as bigint
@@ -47,14 +55,15 @@ async function runPayoutWatcher() {
       console.log('⏱ Round ended. Forcing payout...')
       const { request } = await contract.simulate.forcePayout()
       const txHash = await walletClient.writeContract(request)
-      console.log(`✅ Payout tx sent: ${txHash}`)
+      console.log(`✅ Payout tx sent → https://basescan.org/tx/${txHash}`)
     } else {
-      console.log('⏳ No payout needed.')
+      console.log('⏳ No payout needed this cycle.')
     }
 
     await fetchRecentRounds()
+    console.log(`✅ Job completed at ${new Date().toISOString()}`)
   } catch (err) {
-    console.error('❌ Payout watcher error:', err)
+    console.error('❌ Error in runPayoutWatcher():', err)
   }
 }
 
@@ -62,6 +71,8 @@ async function runPayoutWatcher() {
 async function fetchRecentRounds() {
   try {
     const latestBlock = await publicClient.getBlockNumber()
+    console.log(`📦 Scanning logs up to block ${latestBlock}`)
+
     let rounds: any[] = []
 
     for (
@@ -92,10 +103,11 @@ async function fetchRecentRounds() {
 
     rounds.sort((a, b) => Number(b.roundId - a.roundId))
 
-    await fs.writeFile('server/data.json', JSON.stringify(rounds.slice(0, MAX_ROUNDS), null, 2))
-    console.log(`📦 Cached ${rounds.length} rounds to server/data.json`)
+    const outPath = 'server/data.json'
+    await fs.writeFile(outPath, JSON.stringify(rounds.slice(0, MAX_ROUNDS), null, 2))
+    console.log(`📥 Cached ${rounds.length} rounds → ${outPath}`)
   } catch (e) {
-    console.error('❌ Error caching rounds:', e)
+    console.error('❌ Error in fetchRecentRounds():', e)
   }
 }
 
