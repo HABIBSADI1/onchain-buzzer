@@ -125,8 +125,9 @@ async function fetchRecentRounds() {
       fromBlock <= latestBlock;
       fromBlock += BLOCK_STEP
     ) {
-      const toBlock = fromBlock + BLOCK_STEP - 1n < latestBlock
-        ? fromBlock + BLOCK_STEP - 1n
+      // فاصله دقیقاً 499 بلاک → مجاز در Alchemy
+      const toBlock = fromBlock + 499n < latestBlock
+        ? fromBlock + 499n
         : latestBlock
 
       const logs = await publicClient.getLogs({
@@ -157,6 +158,7 @@ async function fetchRecentRounds() {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
 }
+
 
 // ✅ API to serve /rounds
 const app = express()
