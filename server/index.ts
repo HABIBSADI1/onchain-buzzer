@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import fs from 'fs/promises'
-import express from 'express'
+import express, { Request, Response } from 'express'
 import cors from 'cors'
 import {
   createWalletClient,
@@ -18,14 +18,14 @@ const RPC_URL = process.env.VITE_RPC_URL!
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 
 if (!CONTRACT_ADDRESS || !RPC_URL || !PRIVATE_KEY) {
-  console.error('❌ Missing env vars')
+  console.error('❌ Missing environment variables.')
   process.exit(1)
 }
 
 const BLOCK_STEP = 500n
 const MAX_ROUNDS = 25
 
-// ✅ ABI
+// ✅ ABI from actual contract
 const abi = [
   {
     type: 'function',
@@ -33,13 +33,19 @@ const abi = [
     stateMutability: 'view',
     inputs: [],
     outputs: [
-      { name: 'roundId', type: 'uint256' },
-      { name: 'lastPlayer', type: 'address' },
-      { name: 'pot', type: 'uint256' },
-      { name: 'timeRemaining', type: 'uint256' },
-      { name: 'clicks', type: 'uint256' },
-      { name: 'payoutDone', type: 'bool' }
+      { name: '_roundId', type: 'uint256' },
+      { name: '_lastPlayer', type: 'address' },
+      { name: '_pot', type: 'uint256' },
+      { name: '_timeRemaining', type: 'uint256' },
+      { name: '_clicks', type: 'uint256' }
     ]
+  },
+  {
+    type: 'function',
+    name: 'payoutDone',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'bool' }]
   },
   {
     type: 'function',
@@ -61,9 +67,8 @@ const abi = [
   }
 ] as const
 
-const eventAbi: Abi = [abi[2]]
+const eventAbi: Abi = [abi[3]]
 
-// ✅ viem clients
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
@@ -83,12 +88,14 @@ const contract = getContract({
   client: { public: publicClient, wallet: walletClient }
 })
 
-// ✅ MAIN logic for cron
+// ✅ Main cron logic
 async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
 
   try {
-    const [roundId, , , timeRemaining, , payoutDone] = await contract.read.getGameState()
+    const [roundId, , , timeRemaining] = await contract.read.getGameState()
+    const payoutDone = await contract.read.payoutDone()
+
     console.log(`🕐 Round #${roundId} → timeRemaining: ${timeRemaining}, payoutDone: ${payoutDone}`)
 
     if (timeRemaining === 0n && !payoutDone) {
@@ -107,7 +114,7 @@ async function runPayoutWatcher() {
   }
 }
 
-// ✅ fetch RoundSettled events
+// ✅ Fetch events and cache to data.json
 async function fetchRecentRounds() {
   try {
     const latestBlock = await publicClient.getBlockNumber()
@@ -136,24 +143,24 @@ async function fetchRecentRounds() {
   }
 }
 
-runPayoutWatcher()
-
-// ✅ EXPRESS API to expose /data.json
+// ✅ API to serve /rounds
 const app = express()
 app.use(cors())
 
-app.get('/rounds', async (req, res) => {
+app.get('/rounds', async (req: Request, res: Response) => {
   try {
     const data = await fs.readFile('server/data.json', 'utf-8')
     res.setHeader('Content-Type', 'application/json')
     res.send(data)
   } catch (err) {
-    res.status(500).json({ error: 'Could not read data.json' })
+    res.status(500).json({ error: 'Failed to read data.json' })
   }
 })
 
-// ✅ Start API server
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
   console.log(`📡 Server running at http://localhost:${PORT}`)
 })
+
+// ✅ Start job
+runPayoutWatcher()
