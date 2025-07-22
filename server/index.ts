@@ -1,10 +1,11 @@
 import 'dotenv/config'
+import fs from 'fs/promises'
 import { createWalletClient, createPublicClient, http, getContract } from 'viem'
 import { base } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
-import fs from 'fs/promises'
+import type { Abi } from 'viem'
 
-// ✅ تنظیمات ENV
+// ✅ ENV config
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
@@ -17,39 +18,39 @@ if (!CONTRACT_ADDRESS || !RPC_URL || !PRIVATE_KEY) {
 const BLOCK_STEP = 500n
 const MAX_ROUNDS = 25
 
-// ✅ ABI literal برای TypeScript support
+// ✅ ABI inline
 const abi = [
   {
-    "type": "function",
-    "name": "getGameState",
-    "stateMutability": "view",
-    "inputs": [],
-    "outputs": [
-      { "name": "roundId", "type": "uint256" },
-      { "name": "lastPlayer", "type": "address" },
-      { "name": "pot", "type": "uint256" },
-      { "name": "timeRemaining", "type": "uint256" },
-      { "name": "clicks", "type": "uint256" },
-      { "name": "payoutDone", "type": "bool" }
+    type: 'function',
+    name: 'getGameState',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      { name: 'roundId', type: 'uint256' },
+      { name: 'lastPlayer', type: 'address' },
+      { name: 'pot', type: 'uint256' },
+      { name: 'timeRemaining', type: 'uint256' },
+      { name: 'clicks', type: 'uint256' },
+      { name: 'payoutDone', type: 'bool' }
     ]
   },
   {
-    "type": "function",
-    "name": "forcePayout",
-    "stateMutability": "nonpayable",
-    "inputs": [],
-    "outputs": []
+    type: 'function',
+    name: 'forcePayout',
+    stateMutability: 'nonpayable',
+    inputs: [],
+    outputs: []
   },
   {
-    "type": "event",
-    "name": "RoundSettled",
-    "inputs": [
-      { "name": "roundId", "type": "uint256", "indexed": true },
-      { "name": "winner", "type": "address", "indexed": true },
-      { "name": "reward", "type": "uint256", "indexed": false },
-      { "name": "timestamp", "type": "uint256", "indexed": false }
+    type: 'event',
+    name: 'RoundSettled',
+    inputs: [
+      { name: 'roundId', type: 'uint256', indexed: true },
+      { name: 'winner', type: 'address', indexed: true },
+      { name: 'reward', type: 'uint256', indexed: false },
+      { name: 'timestamp', type: 'uint256', indexed: false }
     ],
-    "anonymous": false
+    anonymous: false
   }
 ] as const
 
@@ -77,7 +78,6 @@ async function runPayoutWatcher() {
 
   try {
     const [roundId, , , timeRemaining, , payoutDone] = await contract.read.getGameState()
-
     console.log(`🕐 Round #${roundId} → timeRemaining: ${timeRemaining}, payoutDone: ${payoutDone}`)
 
     if (timeRemaining === 0n && !payoutDone) {
@@ -101,27 +101,29 @@ async function fetchRecentRounds() {
     const latestBlock = await publicClient.getBlockNumber()
     console.log(`📦 Scanning logs up to block ${latestBlock}`)
 
-    const roundSettledEventAbi = [{
-      type: 'event',
-      name: 'RoundSettled',
-      inputs: [
-        { name: 'roundId', type: 'uint256', indexed: true },
-        { name: 'winner', type: 'address', indexed: true },
-        { name: 'reward', type: 'uint256', indexed: false },
-        { name: 'timestamp', type: 'uint256', indexed: false }
-      ],
-      anonymous: false
-    }] as const
+    const eventAbi: Abi = [
+      {
+        type: 'event',
+        name: 'RoundSettled',
+        inputs: [
+          { name: 'roundId', type: 'uint256', indexed: true },
+          { name: 'winner', type: 'address', indexed: true },
+          { name: 'reward', type: 'uint256', indexed: false },
+          { name: 'timestamp', type: 'uint256', indexed: false }
+        ],
+        anonymous: false
+      }
+    ]
 
-    const logs = await publicClient.getLogs<typeof roundSettledEventAbi, 'RoundSettled'>({
+    const logs = await publicClient.getLogs({
       address: CONTRACT_ADDRESS,
-      abi: roundSettledEventAbi,
+      abi: eventAbi,
       eventName: 'RoundSettled',
       fromBlock: latestBlock - 2000n,
       toBlock: latestBlock
     })
 
-    const parsed = logs.map((log) => ({
+    const parsed = logs.map((log: any) => ({
       roundId: log.args.roundId,
       winner: log.args.winner,
       reward: log.args.reward,
@@ -135,6 +137,5 @@ async function fetchRecentRounds() {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
 }
-
 
 runPayoutWatcher()
