@@ -12,7 +12,7 @@ export default defineConfig({
     exclude: ['@wagmi/connectors/safe'],
   },
   define: {
-    'process.env': {}, // جلوگیری از ارور Buffer در برخی پکیج‌ها
+    'process.env': {},
   },
   server: {
     proxy: {

@@ -9,9 +9,7 @@ type RoundLog = {
 }
 
 const PAGE_SIZE = 5
-
-// ⚠️ آدرس درست و کامل API بک‌اند
-const API_URL = '/rounds' // نه بیشتر، نه کمتر
+const API_URL = '/rounds' // از پراکسی استفاده می‌کنیم
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
@@ -34,7 +32,6 @@ export default function RoundHistoryTableFromLogs() {
         }
 
         const data = await res.json()
-
         if (!Array.isArray(data)) {
           throw new Error('❌ Invalid JSON structure from API')
         }
@@ -110,7 +107,6 @@ export default function RoundHistoryTableFromLogs() {
   )
 }
 
-// 🔧 Helpers
 const shorten = (addr: string) => addr.slice(0, 6) + '...' + addr.slice(-4)
 
 const formatTime = (ts: number) =>
@@ -119,7 +115,6 @@ const formatTime = (ts: number) =>
     timeStyle: 'short',
   })
 
-// 🎨 Styles
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',
