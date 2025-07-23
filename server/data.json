@@ -1,0 +1,62 @@
+[
+  {
+    "roundId": "10",
+    "winner": "0xDD2fD3F5178d56c6224dfEF6914f39b028e4deeC",
+    "reward": "100000000000000",
+    "timestamp": "1753038467"
+  },
+  {
+    "roundId": "9",
+    "winner": "0x7c90E2B16905110E6A6b1b6ba22f006F067910a4",
+    "reward": "50000000000000",
+    "timestamp": "1753037379"
+  },
+  {
+    "roundId": "8",
+    "winner": "0x63d3F3791ea92424382Ec4f8781D3454a48601Ac",
+    "reward": "100000000000000",
+    "timestamp": "1753005781"
+  },
+  {
+    "roundId": "7",
+    "winner": "0x7c90E2B16905110E6A6b1b6ba22f006F067910a4",
+    "reward": "50000000000000",
+    "timestamp": "1753004887"
+  },
+  {
+    "roundId": "6",
+    "winner": "0xA429f7bEa7e847aD5e9eEaB9eEFe966A6Fa1EB89",
+    "reward": "50000000000000",
+    "timestamp": "1752930617"
+  },
+  {
+    "roundId": "5",
+    "winner": "0x7c90E2B16905110E6A6b1b6ba22f006F067910a4",
+    "reward": "150000000000000",
+    "timestamp": "1752929989"
+  },
+  {
+    "roundId": "4",
+    "winner": "0xA429f7bEa7e847aD5e9eEaB9eEFe966A6Fa1EB89",
+    "reward": "100000000000000",
+    "timestamp": "1752928957"
+  },
+  {
+    "roundId": "3",
+    "winner": "0xA429f7bEa7e847aD5e9eEaB9eEFe966A6Fa1EB89",
+    "reward": "50000000000000",
+    "timestamp": "1752877785"
+  },
+  {
+    "roundId": "2",
+    "winner": "0xA429f7bEa7e847aD5e9eEaB9eEFe966A6Fa1EB89",
+    "reward": "50000000000000",
+    "timestamp": "1752877367"
+  },
+  {
+    "roundId": "1",
+    "winner": "0xA429f7bEa7e847aD5e9eEaB9eEFe966A6Fa1EB89",
+    "reward": "50000000000000",
+    "timestamp": "1752877227"
+  }
+]

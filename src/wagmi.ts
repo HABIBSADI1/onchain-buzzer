@@ -1,6 +1,5 @@
 import { createClient, configureChains } from 'wagmi'
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
-import { getDefaultWallets } from '@rainbow-me/rainbowkit' // یا connectkit داخلی
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
@@ -24,17 +23,20 @@ export const client = createClient({
   autoConnect: true,
   connectors: () => [
     new MetaMaskConnector({ chains }),
-    new CoinbaseWalletConnector({ chains, options: { appName: 'Onchain Buzzer' } }),
+    new CoinbaseWalletConnector({
+      chains,
+      options: { appName: 'Onchain Buzzer' },
+    }),
     new WalletConnectConnector({
       chains,
       options: {
         projectId: import.meta.env.VITE_WC_PROJECT_ID!,
-        showQrModal: false, // 👈 جلوگیری از modal تکراری
+        showQrModal: false,
         metadata: {
           name: 'Onchain Buzzer',
           description: 'Buzz and win ETH',
           url: 'https://onchain-buzzer.xyz',
-          icons: ['https://yourdomain.com/logo.png'],
+          icons: ['https://onchain-buzzer.xyz/logo.png'],
         },
       },
     }),

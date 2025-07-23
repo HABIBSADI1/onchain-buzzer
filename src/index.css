@@ -52,3 +52,6 @@ html, body, #root {
   }
 }
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

@@ -9,7 +9,7 @@ type RoundLog = {
 }
 
 const PAGE_SIZE = 5
-const API_URL = 'https://insightful-enjoyment-production.up.railway.app/rounds';  // از پراکسی استفاده می‌کنیم
+const API_URL = '/rounds' // پراکسی Vite اینو می‌بره روی backend  // به جای URL کامل، فقط مسیر لوکال // از پراکسی استفاده می‌کنیم
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])

@@ -1,26 +1,25 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@wagmi/connectors/safe': './src/lib/empty.ts',
+      '@': path.resolve(__dirname, './src'),
+      buffer: 'buffer',
     },
   },
-  optimizeDeps: {
-    exclude: ['@wagmi/connectors/safe'],
-  },
   define: {
-    'process.env': {},
+    'process.env': {}, // برای جلوگیری از ارور مربوط به Buffer
+  },
+  optimizeDeps: {
+    include: ['buffer'],
   },
   server: {
+    port: 5173,
     proxy: {
-      '/rounds': {
-        target: 'https://insightful-enjoyment-production.up.railway.app',
-        changeOrigin: true,
-        secure: false,
-      },
+      '/rounds': 'http://localhost:8080', // پراکسی برای API لوکال بک‌اند
     },
   },
 })

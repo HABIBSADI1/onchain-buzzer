@@ -8,7 +8,7 @@ import { ConnectKitProvider } from 'connectkit'
 
 import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <WagmiConfig client={client}>
       <ConnectKitProvider
@@ -16,9 +16,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
         options={{
           enforceSupportedChains: true,
           hideAvatar: true,
-          walletConnectCTA: 'never', // 👈 جلوی QR دوبل رو می‌گیره
+          walletConnectCTA: 'never',
           customTheme: {
-            '--ck-overlay-background': 'rgba(0,0,0,0.6)', // تم تیره‌تر برای modal
+            '--ck-overlay-background': 'rgba(0,0,0,0.6)',
           },
         }}
       >

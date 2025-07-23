@@ -1,29 +1,31 @@
 import 'dotenv/config'
 import fs from 'fs/promises'
+import path from 'path'
 import express, { Request, Response } from 'express'
 import cors from 'cors'
 import {
-  createWalletClient,
   createPublicClient,
-  http,
-  getContract
+  createWalletClient,
+  getContract,
+  http
 } from 'viem'
-import { base } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
+import { base } from 'viem/chains'
 
-// ✅ ENV config
+// ✅ تنظیمات ENV
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
-const RPC_URL = process.env.VITE_RPC_URL!
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
+const RPC_URL = process.env.VITE_RPC_URL!
 
-if (!CONTRACT_ADDRESS || !RPC_URL || !PRIVATE_KEY) {
-  console.error('❌ Missing environment variables.')
+if (!CONTRACT_ADDRESS || !PRIVATE_KEY || !RPC_URL) {
+  console.error('❌ Please define CONTRACT_ADDRESS, PRIVATE_KEY, and RPC_URL in your environment variables.')
   process.exit(1)
 }
 
 const MAX_ROUNDS = 25
+const DATA_PATH = path.join(__dirname, 'data.json')
 
-// ✅ ABI از storage
+// ✅ ABI
 const abi = [
   {
     type: 'function',
@@ -73,6 +75,7 @@ const abi = [
   }
 ] as const
 
+// ✅ وی‌یم کلاینت‌ها
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
@@ -89,10 +92,13 @@ const walletClient = createWalletClient({
 const contract = getContract({
   address: CONTRACT_ADDRESS,
   abi,
-  client: { public: publicClient, wallet: walletClient }
+  client: {
+    public: publicClient,
+    wallet: walletClient
+  }
 })
 
-// ✅ Cron Job Main Function
+// ✅ اجرای Payout در صورت نیاز
 async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
 
@@ -112,13 +118,13 @@ async function runPayoutWatcher() {
     }
 
     await fetchRecentRounds()
-    console.log(`✅ Job completed at ${new Date().toISOString()}`)
+    console.log(`✅ Job finished at ${new Date().toISOString()}`)
   } catch (err) {
     console.error('❌ Error in runPayoutWatcher():', err)
   }
 }
 
-// ✅ خواندن مستقیم راندهای قبلی از storage کانترکت
+// ✅ دریافت آخرین راندها و ذخیره در فایل
 async function fetchRecentRounds() {
   try {
     const totalRounds: bigint = await contract.read.totalRounds()
@@ -132,36 +138,32 @@ async function fetchRecentRounds() {
       try {
         const [roundId, winner, reward, timestamp] = await contract.read.getRound([i])
         if (timestamp !== 0n) {
-          rounds.push({ roundId, winner, reward, timestamp })
+          rounds.push({
+            roundId: roundId.toString(),
+            winner,
+            reward: reward.toString(),
+            timestamp: timestamp.toString()
+          })
         }
-      } catch (e) {
-        console.warn(`⚠️ Could not fetch round ${i}:`, e)
+      } catch (err) {
+        console.warn(`⚠️ Could not fetch round ${i}:`, err)
       }
     }
 
-    const serialized = rounds.map(r => ({
-      roundId: r.roundId.toString(),
-      winner: r.winner,
-      reward: r.reward.toString(),
-      timestamp: r.timestamp.toString()
-    }))
-
-    // ✅ ذخیره در /tmp (قابل نوشتن در Railway)
-    await fs.writeFile('/tmp/data.json', JSON.stringify(serialized, null, 2))
-    console.log(`📥 Cached ${serialized.length} rounds → /tmp/data.json`)
+    await fs.writeFile(DATA_PATH, JSON.stringify(rounds, null, 2), 'utf-8')
+    console.log(`📥 Cached ${rounds.length} rounds → ${DATA_PATH}`)
   } catch (e) {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
 }
 
-// ✅ Express API server
+// ✅ API Server
 const app = express()
-app.use(cors({ origin: '*' }))
+app.use(cors())
 
-// ✅ API endpoint برای خواندن دیتا
 app.get('/rounds', async (req: Request, res: Response) => {
   try {
-    const data = await fs.readFile('/tmp/data.json', 'utf-8')
+    const data = await fs.readFile(DATA_PATH, 'utf-8')
     res.setHeader('Content-Type', 'application/json')
     res.send(data)
   } catch (err) {
@@ -169,11 +171,10 @@ app.get('/rounds', async (req: Request, res: Response) => {
   }
 })
 
-// ✅ Listen
 const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
-  console.log(`📡 Server running at http://localhost:${PORT}`)
+  console.log(`📡 API available at http://localhost:${PORT}`)
 })
 
-// ✅ Start cron job
+// ✅ شروع Watcher
 runPayoutWatcher()
