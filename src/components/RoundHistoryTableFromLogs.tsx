@@ -11,7 +11,7 @@ type RoundLog = {
 
 // ✅ تنظیمات API
 const PAGE_SIZE = 5
-const API_URL = 'https://insightful-enjoyment-production.up.railway.app/rounds'
+const API_URL = 'https://onchain-buzzer-production.up.railway.app/rounds'
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
