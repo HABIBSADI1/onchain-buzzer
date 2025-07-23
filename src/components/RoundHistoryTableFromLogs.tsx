@@ -9,7 +9,7 @@ type RoundLog = {
 }
 
 const PAGE_SIZE = 5
-const API_URL = 'https://insightful-enjoyment-production.up.railway.app/rounds' // 👈 دقت کن دقیقاً همین URL باشه
+const API_URL = 'https://insightful-enjoyment-production.up.railway.app/rounds'
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
@@ -19,11 +19,26 @@ export default function RoundHistoryTableFromLogs() {
   useEffect(() => {
     const fetchRounds = async () => {
       try {
+        console.log('📡 Fetching from API:', API_URL)
         setLoading(true)
+
         const res = await fetch(API_URL)
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`)
+        const contentType = res.headers.get('Content-Type')
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`)
+        }
+
+        if (!contentType?.includes('application/json')) {
+          throw new Error(`Invalid content-type: ${contentType}`)
+        }
+
         const data = await res.json()
-        if (!Array.isArray(data)) throw new Error('Invalid response format')
+
+        if (!Array.isArray(data)) {
+          throw new Error('❌ API response is not an array')
+        }
+
         setRounds(data)
       } catch (err) {
         console.error('❌ Failed to load rounds from API:', err)
@@ -91,6 +106,7 @@ export default function RoundHistoryTableFromLogs() {
   )
 }
 
+// 🔧 Helpers
 const shorten = (addr: string) => addr.slice(0, 6) + '...' + addr.slice(-4)
 
 const formatTime = (ts: number) =>
@@ -99,6 +115,7 @@ const formatTime = (ts: number) =>
     timeStyle: 'short',
   })
 
+// 🎨 Styles
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',
