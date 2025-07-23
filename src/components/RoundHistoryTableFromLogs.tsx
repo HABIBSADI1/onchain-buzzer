@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { formatEther } from 'viem'
 
+// ✅ تعریف نوع داده‌ها
 type RoundLog = {
   roundId: string
   winner: string
@@ -8,6 +9,7 @@ type RoundLog = {
   timestamp: string
 }
 
+// ✅ تنظیمات API
 const PAGE_SIZE = 5
 const API_URL = 'https://insightful-enjoyment-production.up.railway.app/rounds'
 
@@ -16,32 +18,27 @@ export default function RoundHistoryTableFromLogs() {
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
 
+  // ✅ واکشی دیتا از API
   useEffect(() => {
     const fetchRounds = async () => {
       try {
-        console.log('📡 Fetching from API:', API_URL)
+        console.log('📡 Fetching from:', API_URL)
         setLoading(true)
 
         const res = await fetch(API_URL)
+
         const contentType = res.headers.get('Content-Type')
-
-        if (!res.ok) {
-          throw new Error(`HTTP error! Status: ${res.status}`)
-        }
-
+        if (!res.ok) throw new Error(`❌ HTTP error: ${res.status}`)
         if (!contentType?.includes('application/json')) {
-          throw new Error(`Invalid content-type: ${contentType}`)
+          throw new Error(`❌ Invalid Content-Type: ${contentType}`)
         }
 
         const data = await res.json()
-
-        if (!Array.isArray(data)) {
-          throw new Error('❌ API response is not an array')
-        }
+        if (!Array.isArray(data)) throw new Error('❌ API did not return array')
 
         setRounds(data)
-      } catch (err) {
-        console.error('❌ Failed to load rounds from API:', err)
+      } catch (error) {
+        console.error('❌ Failed to fetch round history:', error)
       } finally {
         setLoading(false)
       }
@@ -50,6 +47,7 @@ export default function RoundHistoryTableFromLogs() {
     fetchRounds()
   }, [])
 
+  // ✅ صفحه‌بندی
   const paginated = rounds.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
@@ -66,7 +64,7 @@ export default function RoundHistoryTableFromLogs() {
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan={4} style={cellStyle}>Loading round logs...</td>
+              <td colSpan={4} style={cellStyle}>Loading...</td>
             </tr>
           ) : paginated.length === 0 ? (
             <tr>
@@ -85,6 +83,7 @@ export default function RoundHistoryTableFromLogs() {
         </tbody>
       </table>
 
+      {/* ✅ دکمه‌های صفحه‌بندی */}
       {!loading && rounds.length > PAGE_SIZE && (
         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
           <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} style={btnStyle}>
@@ -106,7 +105,7 @@ export default function RoundHistoryTableFromLogs() {
   )
 }
 
-// 🔧 Helpers
+// ✅ Helpers
 const shorten = (addr: string) => addr.slice(0, 6) + '...' + addr.slice(-4)
 
 const formatTime = (ts: number) =>
@@ -115,7 +114,7 @@ const formatTime = (ts: number) =>
     timeStyle: 'short',
   })
 
-// 🎨 Styles
+// ✅ Styles
 const tableStyle: React.CSSProperties = {
   width: '100%',
   borderCollapse: 'collapse',
