@@ -121,8 +121,6 @@ async function runPayoutWatcher() {
 // ✅ خواندن مستقیم راندهای قبلی از storage کانترکت
 async function fetchRecentRounds() {
   try {
-    await fs.mkdir('server', { recursive: true })
-
     const totalRounds: bigint = await contract.read.totalRounds()
     const rounds: any[] = []
 
@@ -141,7 +139,6 @@ async function fetchRecentRounds() {
       }
     }
 
-    // ✅ تبدیل BigInt به string برای JSON
     const serialized = rounds.map(r => ({
       roundId: r.roundId.toString(),
       winner: r.winner,
@@ -149,22 +146,22 @@ async function fetchRecentRounds() {
       timestamp: r.timestamp.toString()
     }))
 
-    await fs.writeFile('server/data.json', JSON.stringify(serialized, null, 2))
-    console.log(`📥 Cached ${serialized.length} rounds → server/data.json`)
+    // ✅ ذخیره در /tmp (قابل نوشتن در Railway)
+    await fs.writeFile('/tmp/data.json', JSON.stringify(serialized, null, 2))
+    console.log(`📥 Cached ${serialized.length} rounds → /tmp/data.json`)
   } catch (e) {
     console.error('❌ Error in fetchRecentRounds():', e)
   }
 }
 
-
 // ✅ Express API server
 const app = express()
 app.use(cors({ origin: '*' }))
 
-
+// ✅ API endpoint برای خواندن دیتا
 app.get('/rounds', async (req: Request, res: Response) => {
   try {
-    const data = await fs.readFile('server/data.json', 'utf-8')
+    const data = await fs.readFile('/tmp/data.json', 'utf-8')
     res.setHeader('Content-Type', 'application/json')
     res.send(data)
   } catch (err) {
@@ -172,6 +169,7 @@ app.get('/rounds', async (req: Request, res: Response) => {
   }
 })
 
+// ✅ Listen
 const PORT = process.env.PORT || 8080
 app.listen(PORT, () => {
   console.log(`📡 Server running at http://localhost:${PORT}`)
