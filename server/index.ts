@@ -159,7 +159,8 @@ async function fetchRecentRounds() {
 
 // ✅ Express API server
 const app = express()
-app.use(cors())
+app.use(cors({ origin: '*' }))
+
 
 app.get('/rounds', async (req: Request, res: Response) => {
   try {
