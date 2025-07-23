@@ -14,4 +14,13 @@ export default defineConfig({
   define: {
     'process.env': {}, // جلوگیری از ارور Buffer در برخی پکیج‌ها
   },
+  server: {
+    proxy: {
+      '/rounds': {
+        target: 'https://insightful-enjoyment-production.up.railway.app',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })
