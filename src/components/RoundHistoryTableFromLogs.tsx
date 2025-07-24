@@ -11,7 +11,7 @@ type RoundLog = {
 const PAGE_SIZE = 5
 const API_URL =
   import.meta.env.PROD
-    ? 'https://onchain-buzzer-production.up.railway.app/rounds' // وقتی روی نت هستی
+    ? 'thriving-renewal-production.up.railway.app/rounds' // وقتی روی نت هستی
     : '/rounds' // لوکال با پراکسی Vite  ✅ درست
  // به صورت پروکسی به backend → Vite config باید تعریف شده باشه
 
