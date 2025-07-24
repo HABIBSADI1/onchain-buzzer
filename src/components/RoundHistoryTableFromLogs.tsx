@@ -9,12 +9,12 @@ type RoundLog = {
 }
 
 const PAGE_SIZE = 5
+
+// 🔥 API آدرس درست‌شده برای production و local
 const API_URL =
   import.meta.env.PROD
-    ? 'https://thriving-renewal-production.up.railway.app/rounds'
-    : '/rounds'
- // لوکال با پراکسی Vite  ✅ درست
- // به صورت پروکسی به backend → Vite config باید تعریف شده باشه
+    ? 'https://thriving-renewal-production.up.railway.app/rounds' // ✅ نسخه deploy شده backend
+    : '/api/rounds' // ✅ پراکسی به localhost:8080
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
