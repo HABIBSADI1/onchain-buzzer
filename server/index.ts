@@ -3,32 +3,81 @@ import fs from 'fs/promises'
 import path from 'path'
 import express, { Request, Response } from 'express'
 import cors from 'cors'
+
 import {
   createPublicClient,
   createWalletClient,
   getContract,
-  http
+  http,
+  GetContractReturnType
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { base } from 'viem/chains'
 
-// 🔐 ENV Setup
+// ✅ تنظیمات محیط
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
 
 if (!CONTRACT_ADDRESS || !PRIVATE_KEY || !RPC_URL) {
-  console.error('❌ Missing env vars: VITE_CONTRACT_ADDRESS, PRIVATE_KEY, VITE_RPC_URL')
+  console.error('❌ Please define CONTRACT_ADDRESS, PRIVATE_KEY, and RPC_URL in your environment variables.')
   process.exit(1)
 }
 
 const MAX_ROUNDS = 25
 const DATA_PATH = path.join(__dirname, 'data.json')
 
-// 🧠 ABI
-const abi = [ /* همان ABI که شما دادی */ ] as const
+// ✅ ABI قرارداد
+const abi = [
+  {
+    type: 'function',
+    name: 'getGameState',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      { name: '_roundId', type: 'uint256' },
+      { name: '_lastPlayer', type: 'address' },
+      { name: '_pot', type: 'uint256' },
+      { name: '_timeRemaining', type: 'uint256' },
+      { name: '_clicks', type: 'uint256' }
+    ]
+  },
+  {
+    type: 'function',
+    name: 'payoutDone',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'bool' }]
+  },
+  {
+    type: 'function',
+    name: 'forcePayout',
+    stateMutability: 'nonpayable',
+    inputs: [],
+    outputs: []
+  },
+  {
+    type: 'function',
+    name: 'totalRounds',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }]
+  },
+  {
+    type: 'function',
+    name: 'getRound',
+    stateMutability: 'view',
+    inputs: [{ name: 'id', type: 'uint256' }],
+    outputs: [
+      { name: 'roundId', type: 'uint256' },
+      { name: 'winner', type: 'address' },
+      { name: 'reward', type: 'uint256' },
+      { name: 'timestamp', type: 'uint256' }
+    ]
+  }
+] as const
 
-// 🔗 viem Clients
+// ✅ ساخت کلاینت
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
@@ -42,7 +91,7 @@ const walletClient = createWalletClient({
   account
 })
 
-const contract = getContract({
+const contract: GetContractReturnType<typeof abi, typeof publicClient> = getContract({
   address: CONTRACT_ADDRESS,
   abi,
   client: {
@@ -51,43 +100,9 @@ const contract = getContract({
   }
 })
 
-// 🧾 Fetch Rounds
-async function fetchRecentRounds() {
-  try {
-    const totalRounds: bigint = await contract.read.totalRounds()
-    const rounds: any[] = []
-
-    const from = totalRounds > BigInt(MAX_ROUNDS)
-      ? totalRounds - BigInt(MAX_ROUNDS)
-      : 0n
-
-    for (let i = totalRounds - 1n; i >= from; i--) {
-      try {
-        const [roundId, winner, reward, timestamp] = await contract.read.getRound([i])
-        if (timestamp !== 0n) {
-          rounds.push({
-            roundId: roundId.toString(),
-            winner,
-            reward: reward.toString(),
-            timestamp: timestamp.toString()
-          })
-        }
-      } catch (err) {
-        console.warn(`⚠️ Error fetching round ${i}:`, err)
-      }
-    }
-
-    await fs.writeFile(DATA_PATH, JSON.stringify(rounds, null, 2), 'utf-8')
-    console.log(`📥 Cached ${rounds.length} rounds → ${DATA_PATH}`)
-  } catch (e) {
-    console.error('❌ Error in fetchRecentRounds():', e)
-  }
-}
-
-// ⛏️ Watch Payout
+// ✅ اجرای Payout در صورت نیاز
 async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
-
   try {
     const [roundId, , , timeRemaining] = await contract.read.getGameState()
     const payoutDone = await contract.read.payoutDone()
@@ -110,37 +125,61 @@ async function runPayoutWatcher() {
   }
 }
 
-// 🌐 Express API Server
+// ✅ دریافت آخرین راندها و ذخیره در فایل
+async function fetchRecentRounds() {
+  try {
+    const totalRounds: bigint = await contract.read.totalRounds()
+    const rounds: any[] = []
+
+    const from = totalRounds > BigInt(MAX_ROUNDS) ? totalRounds - BigInt(MAX_ROUNDS) : 0n
+
+    for (let i = totalRounds - 1n; i >= from; i--) {
+      try {
+        const [roundId, winner, reward, timestamp] = await contract.read.getRound([i])
+        if (timestamp !== 0n) {
+          rounds.push({
+            roundId: roundId.toString(),
+            winner,
+            reward: reward.toString(),
+            timestamp: timestamp.toString()
+          })
+        }
+      } catch (err) {
+        console.warn(`⚠️ Could not fetch round ${i}:`, err)
+      }
+    }
+
+    await fs.writeFile(DATA_PATH, JSON.stringify(rounds, null, 2), 'utf-8')
+    console.log(`📥 Cached ${rounds.length} rounds → ${DATA_PATH}`)
+  } catch (e) {
+    console.error('❌ Error in fetchRecentRounds():', e)
+  }
+}
+
+// ✅ API سرور
 const app = express()
 app.use(cors())
 
-app.get('/rounds', async (req: Request, res: Response) => {
+app.get('/rounds', async (_req: Request, res: Response) => {
   try {
     const data = await fs.readFile(DATA_PATH, 'utf-8')
     res.setHeader('Content-Type', 'application/json')
     res.send(data)
-  } catch {
+  } catch (err) {
     res.status(500).json({ error: 'Failed to read data.json' })
   }
 })
 
-// 🧱 Serve Static React Build (Vite outDir: dist/public)
-app.use(express.static(path.join(__dirname, 'public')))
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'))
-})
-
-// 🚀 Start Server
+// ✅ اجرای سرور برای Railway
 const PORT = Number(process.env.PORT) || 8080
 const HOST = '0.0.0.0'
 
 app.listen(PORT, HOST, () => {
-  console.log(`📡 Server listening at http://${HOST}:${PORT}`)
+  console.log(`📡 API available at http://${HOST}:${PORT}`)
 })
 
-// 🔁 Boot Jobs
+// ✅ اجرای Watcher و Fetch اولیه
 runPayoutWatcher()
-fetchRecentRounds().then(() => {
-  console.log('✅ Round data fetched manually.')
-}).catch(console.error)
+fetchRecentRounds()
+  .then(() => console.log('✅ Round data fetched manually.'))
+  .catch(console.error)
