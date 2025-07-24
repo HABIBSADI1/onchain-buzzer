@@ -7,16 +7,16 @@ import {
   createPublicClient,
   createWalletClient,
   getContract,
-  http
+  http,
+  type Abi,
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { base } from 'viem/chains'
 
+// ✅ تنظیمات ENV
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
-const PORT = Number(process.env.PORT) || 8080
-const HOST = '0.0.0.0'
 
 if (!CONTRACT_ADDRESS || !PRIVATE_KEY || !RPC_URL) {
   console.error('❌ Please define CONTRACT_ADDRESS, PRIVATE_KEY, and RPC_URL in your environment variables.')
@@ -26,6 +26,7 @@ if (!CONTRACT_ADDRESS || !PRIVATE_KEY || !RPC_URL) {
 const MAX_ROUNDS = 25
 const DATA_PATH = path.join(__dirname, 'data.json')
 
+// ✅ ABI
 const abi = [
   {
     type: 'function',
@@ -73,30 +74,33 @@ const abi = [
       { name: 'timestamp', type: 'uint256' }
     ]
   }
-] as const
+] as const satisfies Abi
 
+// ✅ کلاینت‌ها
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
   chain: base,
-  transport: http(RPC_URL)
+  transport: http(RPC_URL),
 })
 
 const walletClient = createWalletClient({
   chain: base,
   transport: http(RPC_URL),
-  account
+  account,
 })
 
-const contract = getContract({
+// ✅ contract به صورت strongly typed
+const contract = getContract<typeof abi, typeof publicClient, typeof walletClient>({
   address: CONTRACT_ADDRESS,
   abi,
   publicClient,
-  walletClient
+  walletClient,
 })
 
+// ✅ اجرای Payout در صورت نیاز
 async function runPayoutWatcher() {
-  console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
+  console.log(`🚀 Job started at ${new Date().toISOString()}`)
 
   try {
     const [roundId, , , timeRemaining] = await contract.read.getGameState()
@@ -120,6 +124,7 @@ async function runPayoutWatcher() {
   }
 }
 
+// ✅ دریافت راندها و ذخیره در فایل
 async function fetchRecentRounds() {
   try {
     const totalRounds: bigint = await contract.read.totalRounds()
@@ -135,7 +140,7 @@ async function fetchRecentRounds() {
             roundId: roundId.toString(),
             winner,
             reward: reward.toString(),
-            timestamp: timestamp.toString()
+            timestamp: timestamp.toString(),
           })
         }
       } catch (err) {
@@ -150,10 +155,11 @@ async function fetchRecentRounds() {
   }
 }
 
+// ✅ API Server
 const app = express()
 app.use(cors())
 
-app.get('/rounds', async (_req: Request, res: Response) => {
+app.get('/rounds', async (req: Request, res: Response) => {
   try {
     const data = await fs.readFile(DATA_PATH, 'utf-8')
     res.setHeader('Content-Type', 'application/json')
@@ -163,11 +169,14 @@ app.get('/rounds', async (_req: Request, res: Response) => {
   }
 })
 
+// ✅ اجرای سرور Railway-compatible
+const PORT = Number(process.env.PORT) || 8080
+const HOST = '0.0.0.0'
+
 app.listen(PORT, HOST, () => {
   console.log(`📡 API available at http://${HOST}:${PORT}`)
 })
 
+// اجرای Watcher و گرفتن داده اولیه
 runPayoutWatcher()
-fetchRecentRounds()
-  .then(() => console.log('✅ Round data fetched manually.'))
-  .catch(console.error)
+fetchRecentRounds().catch(console.error)
