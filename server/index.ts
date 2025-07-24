@@ -3,18 +3,18 @@ import fs from 'fs/promises'
 import path from 'path'
 import express, { Request, Response } from 'express'
 import cors from 'cors'
-
 import {
   createPublicClient,
   createWalletClient,
   getContract,
   http,
-  GetContractReturnType
+  type PublicClient,
+  type WalletClient
 } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
 import { base } from 'viem/chains'
 
-// ✅ تنظیمات محیط
+// ✅ تنظیمات ENV
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
@@ -27,7 +27,7 @@ if (!CONTRACT_ADDRESS || !PRIVATE_KEY || !RPC_URL) {
 const MAX_ROUNDS = 25
 const DATA_PATH = path.join(__dirname, 'data.json')
 
-// ✅ ABI قرارداد
+// ✅ ABI
 const abi = [
   {
     type: 'function',
@@ -77,12 +77,12 @@ const abi = [
   }
 ] as const
 
-// ✅ ساخت کلاینت
+// ✅ اتصال به وی‌یم
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
   chain: base,
-  transport: http(RPC_URL)
+  transport: http(RPC_URL),
 })
 
 const walletClient = createWalletClient({
@@ -91,7 +91,7 @@ const walletClient = createWalletClient({
   account
 })
 
-const contract: GetContractReturnType<typeof abi, typeof publicClient> = getContract({
+const contract = getContract<typeof abi, PublicClient, WalletClient>({
   address: CONTRACT_ADDRESS,
   abi,
   client: {
@@ -100,9 +100,10 @@ const contract: GetContractReturnType<typeof abi, typeof publicClient> = getCont
   }
 })
 
-// ✅ اجرای Payout در صورت نیاز
+// ✅ Watcher و Payout
 async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
+
   try {
     const [roundId, , , timeRemaining] = await contract.read.getGameState()
     const payoutDone = await contract.read.payoutDone()
@@ -125,13 +126,15 @@ async function runPayoutWatcher() {
   }
 }
 
-// ✅ دریافت آخرین راندها و ذخیره در فایل
+// ✅ واکشی راندها
 async function fetchRecentRounds() {
   try {
     const totalRounds: bigint = await contract.read.totalRounds()
     const rounds: any[] = []
 
-    const from = totalRounds > BigInt(MAX_ROUNDS) ? totalRounds - BigInt(MAX_ROUNDS) : 0n
+    const from = totalRounds > BigInt(MAX_ROUNDS)
+      ? totalRounds - BigInt(MAX_ROUNDS)
+      : 0n
 
     for (let i = totalRounds - 1n; i >= from; i--) {
       try {
@@ -156,7 +159,7 @@ async function fetchRecentRounds() {
   }
 }
 
-// ✅ API سرور
+// ✅ API Server
 const app = express()
 app.use(cors())
 
@@ -170,7 +173,6 @@ app.get('/rounds', async (_req: Request, res: Response) => {
   }
 })
 
-// ✅ اجرای سرور برای Railway
 const PORT = Number(process.env.PORT) || 8080
 const HOST = '0.0.0.0'
 
@@ -178,7 +180,7 @@ app.listen(PORT, HOST, () => {
   console.log(`📡 API available at http://${HOST}:${PORT}`)
 })
 
-// ✅ اجرای Watcher و Fetch اولیه
+// ✅ شروع برنامه
 runPayoutWatcher()
 fetchRecentRounds()
   .then(() => console.log('✅ Round data fetched manually.'))
