@@ -12,20 +12,20 @@ import {
 import { privateKeyToAccount } from 'viem/accounts'
 import { base } from 'viem/chains'
 
-// ✅ تنظیمات ENV
+// ✅ ENV config
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
 
 if (!CONTRACT_ADDRESS || !PRIVATE_KEY || !RPC_URL) {
-  console.error('❌ Please define CONTRACT_ADDRESS, PRIVATE_KEY, and RPC_URL in your environment variables.')
+  console.error('❌ Missing environment variables.')
   process.exit(1)
 }
 
 const MAX_ROUNDS = 25
 const DATA_PATH = path.join(__dirname, 'data.json')
 
-// ✅ ABI
+// ✅ Contract ABI
 const abi = [
   {
     type: 'function',
@@ -75,7 +75,7 @@ const abi = [
   }
 ] as const
 
-// ✅ وی‌یم کلاینت‌ها
+// ✅ Setup clients
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
@@ -98,9 +98,9 @@ const contract = getContract({
   }
 })
 
-// ✅ اجرای Payout در صورت نیاز
+// ✅ Payout logic
 async function runPayoutWatcher() {
-  console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
+  console.log(`🚀 Job started at ${new Date().toISOString()}`)
 
   try {
     const [roundId, , , timeRemaining] = await contract.read.getGameState()
@@ -109,10 +109,10 @@ async function runPayoutWatcher() {
     console.log(`🕐 Round #${roundId} → timeRemaining: ${timeRemaining}, payoutDone: ${payoutDone}`)
 
     if (timeRemaining === 0n && !payoutDone) {
-      console.log('⏱ Round ended. Forcing payout...')
+      console.log('⏱ Forcing payout...')
       const { request } = await contract.simulate.forcePayout()
       const txHash = await walletClient.writeContract(request)
-      console.log(`✅ Payout tx sent → https://basescan.org/tx/${txHash}`)
+      console.log(`✅ Payout tx → https://basescan.org/tx/${txHash}`)
     } else {
       console.log('⏳ No payout needed.')
     }
@@ -120,19 +120,17 @@ async function runPayoutWatcher() {
     await fetchRecentRounds()
     console.log(`✅ Job finished at ${new Date().toISOString()}`)
   } catch (err) {
-    console.error('❌ Error in runPayoutWatcher():', err)
+    console.error('❌ Error in payout watcher:', err)
   }
 }
 
-// ✅ دریافت آخرین راندها و ذخیره در فایل
+// ✅ Round fetcher
 async function fetchRecentRounds() {
   try {
     const totalRounds: bigint = await contract.read.totalRounds()
     const rounds: any[] = []
 
-    const from = totalRounds > BigInt(MAX_ROUNDS)
-      ? totalRounds - BigInt(MAX_ROUNDS)
-      : 0n
+    const from = totalRounds > BigInt(MAX_ROUNDS) ? totalRounds - BigInt(MAX_ROUNDS) : 0n
 
     for (let i = totalRounds - 1n; i >= from; i--) {
       try {
@@ -157,7 +155,7 @@ async function fetchRecentRounds() {
   }
 }
 
-// ✅ API Server
+// ✅ Express API
 const app = express()
 app.use(cors())
 
@@ -172,11 +170,13 @@ app.get('/rounds', async (req: Request, res: Response) => {
 })
 
 const PORT = process.env.PORT || 8080
-app.listen(PORT, () => {
-  console.log(`📡 API available at http://localhost:${PORT}`)
+const HOST = '0.0.0.0' // ✅ مهم برای deploy شدن
+
+app.listen(PORT, HOST, () => {
+  console.log(`📡 API available at http://${HOST}:${PORT}`)
 })
 
-// ✅ شروع Watcher
+// ✅ Start services
 runPayoutWatcher()
 
 fetchRecentRounds()
