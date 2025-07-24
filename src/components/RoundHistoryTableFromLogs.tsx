@@ -13,8 +13,8 @@ const PAGE_SIZE = 5
 // 🔥 API آدرس درست‌شده برای production و local
 const API_URL =
   import.meta.env.PROD
-    ? 'https://thriving-renewal-production.up.railway.app/rounds' // ← آدرس backend از Railway
-    : '/rounds'
+    ? 'https://thriving-renewal-production.up.railway.app/rounds' // آدرس کامل بک‌اند در Railway
+    : '/rounds' // فقط برای dev با Vite proxy
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
