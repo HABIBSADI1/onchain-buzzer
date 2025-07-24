@@ -4,7 +4,7 @@
     "buildCommand": "cd onchain-buzzer && npm install && npm run build"
   },
   "deploy": {
-    "startCommand": "cd onchain-buzzer && npm run preview",
+    "startCommand": "cd onchain-buzzer && npm run preview -- --host",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
