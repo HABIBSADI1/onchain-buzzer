@@ -171,7 +171,7 @@ app.get('/rounds', async (req: Request, res: Response) => {
   }
 })
 
-// ✅ اصلاح شده:
+// ✅ اجرای سرور در Railway-compatible حالت
 const PORT = Number(process.env.PORT) || 8080
 const HOST = '0.0.0.0'
 
@@ -179,7 +179,7 @@ app.listen(PORT, HOST, () => {
   console.log(`📡 API available at http://${HOST}:${PORT}`)
 })
 
-// ✅ اجرای Watcher و fetch اولیه
+// ✅ اجرای Watcher و Fetch اولیه
 runPayoutWatcher()
 
 fetchRecentRounds()
