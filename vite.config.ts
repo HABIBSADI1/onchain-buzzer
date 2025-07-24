@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   define: {
-    'process.env': {}, // برای جلوگیری از ارور مربوط به Buffer
+    'process.env': {}, // جلوگیری از ارور Buffer
   },
   optimizeDeps: {
     include: ['buffer'],
@@ -19,7 +19,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/rounds': 'http://localhost:8080', // پراکسی برای API لوکال بک‌اند
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
     },
   },
 })

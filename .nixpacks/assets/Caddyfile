@@ -1,0 +1,17 @@
+:80 {
+  root * /app/dist
+  file_server
+
+  handle_path /rounds {
+    reverse_proxy localhost:8080
+  }
+
+  handle_path /api/* {
+    reverse_proxy localhost:8080
+  }
+
+  handle {
+    try_files {path} /index.html
+    file_server
+  }
+}

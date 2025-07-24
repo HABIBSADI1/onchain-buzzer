@@ -178,3 +178,7 @@ app.listen(PORT, () => {
 
 // ✅ شروع Watcher
 runPayoutWatcher()
+
+fetchRecentRounds()
+  .then(() => console.log('✅ Round data fetched manually.'))
+  .catch(console.error)
