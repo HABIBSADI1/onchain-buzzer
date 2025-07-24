@@ -13,9 +13,8 @@ const PAGE_SIZE = 5
 // 🔥 API آدرس درست‌شده برای production و local
 const API_URL =
   import.meta.env.PROD
-    ? 'https://onchain-buzzer-production.up.railway.app/rounds' // ✅ این آدرس API واقعی توئه
-    : '/api/rounds'
- // ✅ پراکسی به localhost:8080
+    ? 'https://thriving-renewal-production.up.railway.app/rounds' // ✅ آدرس واقعی backend در Railway
+    : '/rounds'
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])

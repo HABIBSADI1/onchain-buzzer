@@ -19,11 +19,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
+      '/rounds': {
+        target: 'http://localhost:8080', // فقط در حالت توسعه (dev)
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
-  },
+        rewrite: (path) => path.replace(/^\/rounds/, '/rounds'),
+      }
+    }
+  }
 })

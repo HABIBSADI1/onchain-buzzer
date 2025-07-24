@@ -1,0 +1,16 @@
+{
+  "services": [
+    {
+      "name": "backend",
+      "root": "server",
+      "start": "npm run start",
+      "build": "npm run build"
+    },
+    {
+      "name": "frontend",
+      "root": "src",
+      "start": "npm run preview",
+      "build": "npm run build"
+    }
+  ]
+}
