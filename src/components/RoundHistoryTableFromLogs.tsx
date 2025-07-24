@@ -13,7 +13,7 @@ const PAGE_SIZE = 5
 // 🔥 API آدرس درست‌شده برای production و local
 const API_URL =
   import.meta.env.PROD
-    ? 'https://thriving-renewal-production.up.railway.app/rounds' // ✅ آدرس واقعی backend در Railway
+    ? 'https://thriving-renewal-production.up.railway.app/rounds' // ← آدرس backend از Railway
     : '/rounds'
 
 export default function RoundHistoryTableFromLogs() {
