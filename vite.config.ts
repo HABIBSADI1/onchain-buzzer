@@ -7,14 +7,18 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      buffer: 'buffer',
-    },
+      buffer: 'buffer'
+    }
   },
   define: {
-    'process.env': {}, // برای جلوگیری از ارور Buffer
+    'process.env': {}  // fix برای استفاده‌ی احتمالی از env در مرورگر
   },
   optimizeDeps: {
-    include: ['buffer'],
+    include: ['buffer']
+  },
+  build: {
+    outDir: 'dist/public',
+    emptyOutDir: true
   },
   server: {
     port: 5173,
