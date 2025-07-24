@@ -11,7 +11,7 @@ export default defineConfig({
     },
   },
   define: {
-    'process.env': {},
+    'process.env': {}, // برای جلوگیری از ارور Buffer
   },
   optimizeDeps: {
     include: ['buffer'],
@@ -20,10 +20,10 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://thriving-renewal-production.up.railway.app',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-    },
-  },
+        rewrite: path => path.replace(/^\/api/, '')
+      }
+    }
+  }
 })
