@@ -2,10 +2,10 @@
   "name": "onchain-buzzer-fullstack",
   "type": "module",
   "scripts": {
-    "dev": "ts-node server/index.ts",
-    "build": "vite build",
-    "start": "node dist-server/index.js"
-  },
+  "dev": "vite",
+  "build": "vite build",
+  "start": "node dist-server/index.js"
+},
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
