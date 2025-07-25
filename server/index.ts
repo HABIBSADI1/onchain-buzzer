@@ -1,15 +1,16 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
+dotenv.config()
 import fs from 'fs/promises'
 import path from 'path'
-import express, { Request, Response } from 'express'
+import express from 'express'
 import cors from 'cors'
+import { fileURLToPath } from 'url'
 
 import {
   createPublicClient,
   createWalletClient,
   getContract,
-  http,
-  type GetContractReturnType
+  http
 } from 'viem'
 
 import { privateKeyToAccount } from 'viem/accounts'
@@ -21,14 +22,13 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
 
 if (!CONTRACT_ADDRESS || !PRIVATE_KEY || !RPC_URL) {
-  console.error('❌ لطفاً مقادیر VITE_CONTRACT_ADDRESS، PRIVATE_KEY، و VITE_RPC_URL را در .env وارد کنید.')
+  console.error('❌ لطفاً متغیرهای محیطی VITE_CONTRACT_ADDRESS، PRIVATE_KEY و VITE_RPC_URL را تنظیم کنید.')
   process.exit(1)
 }
 
 const MAX_ROUNDS = 25
-const DATA_PATH = path.join(__dirname, 'data.json')
 
-// ✅ ABI
+// ✅ ABI قرارداد
 const abi = [
   {
     type: 'function',
@@ -78,7 +78,7 @@ const abi = [
   }
 ] as const
 
-// ✅ ساخت کلاینت‌ها
+// ✅ ایجاد کلاینت‌ها
 const account = privateKeyToAccount(PRIVATE_KEY)
 
 const publicClient = createPublicClient({
@@ -92,16 +92,21 @@ const walletClient = createWalletClient({
   account
 })
 
-type ContractType = GetContractReturnType<typeof abi, typeof publicClient, typeof walletClient>
-
-const contract: ContractType = getContract({
+const contract = getContract({
   address: CONTRACT_ADDRESS,
   abi,
-  publicClient,
-  walletClient
+  client: {
+    public: publicClient,
+    wallet: walletClient
+  }
 })
 
-// ✅ اجرای Payout در صورت نیاز
+// مسیر فایل کش
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const DATA_PATH = path.join(__dirname, 'data.json')
+
+// ✅ Watcher برای اجرای forcePayout
 async function runPayoutWatcher() {
   console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
 
@@ -127,7 +132,7 @@ async function runPayoutWatcher() {
   }
 }
 
-// ✅ دریافت آخرین راندها
+// ✅ دریافت و کش آخرین راندها
 async function fetchRecentRounds() {
   try {
     const totalRounds: bigint = await contract.read.totalRounds()
@@ -162,26 +167,37 @@ async function fetchRecentRounds() {
 const app = express()
 app.use(cors())
 
-app.get('/rounds', async (req: Request, res: Response) => {
+app.get('/rounds', async (_req, res) => {
+  console.log('📥 GET /rounds called')
+
   try {
     const data = await fs.readFile(DATA_PATH, 'utf-8')
     res.setHeader('Content-Type', 'application/json')
     res.send(data)
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to read data.json' })
+  } catch {
+    console.warn('⚠️ data.json not found, sending empty array')
+    res.status(200).json([])
   }
 })
 
-const PORT = Number(process.env.PORT) || 8080
+// ✅ Frontend Static Files
+const distPath = path.join(__dirname, '..', 'dist')
+app.use(express.static(distPath))
+
+app.get('/*', (req, res) => {
+  res.sendFile(path.join(distPath, 'index.html'))
+})
+
+// ✅ Start Server
+const PORT = Number(process.env.PORT) || 3000
 const HOST = '0.0.0.0'
 
 app.listen(PORT, HOST, () => {
-  console.log(`📡 API available at http://${HOST}:${PORT}`)
+  console.log(`📡 Server ready at http://${HOST}:${PORT}`)
 })
 
-// ✅ شروع Watcher و Fetch اولیه
+// ✅ Job Runner
 runPayoutWatcher()
-
 fetchRecentRounds()
   .then(() => console.log('✅ Round data fetched manually.'))
   .catch(console.error)

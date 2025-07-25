@@ -22,12 +22,10 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    proxy: {
-      '/api': {
-        target: 'https://thriving-renewal-production.up.railway.app',
-        changeOrigin: true,
-        rewrite: path => path.replace(/^\/api/, '')
-      }
-    }
+    server: {
+  proxy: {
+    '/rounds': 'http://localhost:3000'
+  }
+}
   }
 })

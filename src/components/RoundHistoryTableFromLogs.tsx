@@ -13,8 +13,8 @@ const PAGE_SIZE = 5
 // 🔥 API آدرس درست‌شده برای production و local
 const API_URL =
   import.meta.env.PROD
-    ? 'https://thriving-renewal-production.up.railway.app/rounds' // آدرس کامل API وقتی روی Railway هستی
-    : '/api/rounds' // فقط برای dev پراکسی
+    ? '/rounds' // توی Railway دیپلوی کامل fullstack
+    : 'http://localhost:3000/rounds' // فقط برای dev پراکسی
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
