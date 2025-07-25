@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "serve -s dist -l $PORT"
-  },
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview --host 0.0.0.0 --port $PORT"
+},
   "dependencies": {
     "@fontsource/inter": "^5.2.6",
     "@safe-global/safe-apps-provider": "^0.18.6",
