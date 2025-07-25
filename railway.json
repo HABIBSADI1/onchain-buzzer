@@ -1,6 +1,0 @@
-{
-  "build": {
-    "command": "npm install && npm run build && npx tsc"
-  },
-  "start": "node dist-server/index.js"
-}

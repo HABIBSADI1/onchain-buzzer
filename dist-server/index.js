@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 import { createPublicClient, createWalletClient, getContract, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { base } from 'viem/chains';
-// ✅ تنظیمات ENV
+// ✅ ENV Variables
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS;
 const PRIVATE_KEY = process.env.PRIVATE_KEY;
 const RPC_URL = process.env.VITE_RPC_URL;
@@ -66,7 +66,7 @@ const abi = [
         ]
     }
 ];
-// ✅ ایجاد کلاینت‌ها
+// ✅ Clients
 const account = privateKeyToAccount(PRIVATE_KEY);
 const publicClient = createPublicClient({
     chain: base,
@@ -85,11 +85,11 @@ const contract = getContract({
         wallet: walletClient
     }
 });
-// مسیر فایل کش
+// ✅ File paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const DATA_PATH = path.join(__dirname, 'data.json');
-// ✅ Watcher برای اجرای forcePayout
+// ✅ Watcher: run payout if needed
 async function runPayoutWatcher() {
     console.log(`\n🚀 Job started at ${new Date().toISOString()}`);
     try {
@@ -112,7 +112,7 @@ async function runPayoutWatcher() {
         console.error('❌ Error in runPayoutWatcher():', err);
     }
 }
-// ✅ دریافت و کش آخرین راندها
+// ✅ Get latest rounds
 async function fetchRecentRounds() {
     try {
         const totalRounds = await contract.read.totalRounds();
@@ -144,8 +144,9 @@ async function fetchRecentRounds() {
 // ✅ API Server
 const app = express();
 app.use(cors());
-app.get('/rounds', async (_req, res) => {
-    console.log('📥 GET /rounds called');
+// ⚠️ مهم: این مسیر قبل از express.static بیاد
+app.get('/api/rounds', async (_req, res) => {
+    console.log('📥 GET /api/rounds called');
     try {
         const data = await fs.readFile(DATA_PATH, 'utf-8');
         res.setHeader('Content-Type', 'application/json');
@@ -156,7 +157,7 @@ app.get('/rounds', async (_req, res) => {
         res.status(200).json([]);
     }
 });
-// ✅ Frontend Static Files
+// ✅ Serve frontend from dist
 const distPath = path.join(__dirname, '..', 'dist');
 app.use(express.static(distPath));
 app.get('/*', (req, res) => {
@@ -168,7 +169,7 @@ const HOST = '0.0.0.0';
 app.listen(PORT, HOST, () => {
     console.log(`📡 Server ready at http://${HOST}:${PORT}`);
 });
-// ✅ Job Runner
+// ✅ Start jobs
 runPayoutWatcher();
 fetchRecentRounds()
     .then(() => console.log('✅ Round data fetched manually.'))
