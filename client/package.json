@@ -9,11 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "connectkit": "^1.2.4",
+    "connectkit": "^1.9.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "viem": "^2.32.1",
-    "wagmi": "^0.12.19"
+    "wagmi": "^1.4.5",
+    "@tanstack/react-query": "^5.83.0",
+    "viem": "^2.32.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
