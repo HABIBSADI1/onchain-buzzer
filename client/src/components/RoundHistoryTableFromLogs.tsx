@@ -13,7 +13,7 @@ const PAGE_SIZE = 5
 const POLL_INTERVAL = 180_000 // 3 دقیقه
 
 // استفاده از VITE_API_URL از env
-const API_URL = `${import.meta.env.VITE_API_URL}/rounds`
+const API_URL = import.meta.env.VITE_API_URL
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
