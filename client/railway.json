@@ -1,6 +1,10 @@
 {
   "build": {
-    "command": "npm install && npm run build && npx tsc"
+    "builder": "NIXPACKS",
+    "buildCommand": "npm run build"
   },
-  "start": "node dist-server/index.js"
+  "deploy": {
+    "startCommand": "npm run preview",
+    "restartPolicyType": "ON_FAILURE"
+  }
 }
