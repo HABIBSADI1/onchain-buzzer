@@ -1,5 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config()
+
 import fs from 'fs/promises'
 import path from 'path'
 import express from 'express'
@@ -10,25 +11,23 @@ import {
   createPublicClient,
   createWalletClient,
   getContract,
-  http
+  http,
 } from 'viem'
-
 import { privateKeyToAccount } from 'viem/accounts'
 import { base } from 'viem/chains'
 
-// ✅ تنظیمات ENV
+// Env vars
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
 
 if (!CONTRACT_ADDRESS || !PRIVATE_KEY || !RPC_URL) {
-  console.error('❌ لطفاً متغیرهای محیطی VITE_CONTRACT_ADDRESS، PRIVATE_KEY و VITE_RPC_URL را تنظیم کنید.')
+  console.error('❌ Missing required env variables.')
   process.exit(1)
 }
 
 const MAX_ROUNDS = 25
 
-// ✅ ABI قرارداد
 const abi = [
   {
     type: 'function',
@@ -40,29 +39,29 @@ const abi = [
       { name: '_lastPlayer', type: 'address' },
       { name: '_pot', type: 'uint256' },
       { name: '_timeRemaining', type: 'uint256' },
-      { name: '_clicks', type: 'uint256' }
-    ]
+      { name: '_clicks', type: 'uint256' },
+    ],
   },
   {
     type: 'function',
     name: 'payoutDone',
     stateMutability: 'view',
     inputs: [],
-    outputs: [{ name: '', type: 'bool' }]
+    outputs: [{ name: '', type: 'bool' }],
   },
   {
     type: 'function',
     name: 'forcePayout',
     stateMutability: 'nonpayable',
     inputs: [],
-    outputs: []
+    outputs: [],
   },
   {
     type: 'function',
     name: 'totalRounds',
     stateMutability: 'view',
     inputs: [],
-    outputs: [{ name: '', type: 'uint256' }]
+    outputs: [{ name: '', type: 'uint256' }],
   },
   {
     type: 'function',
@@ -73,42 +72,30 @@ const abi = [
       { name: 'roundId', type: 'uint256' },
       { name: 'winner', type: 'address' },
       { name: 'reward', type: 'uint256' },
-      { name: 'timestamp', type: 'uint256' }
-    ]
-  }
+      { name: 'timestamp', type: 'uint256' },
+    ],
+  },
 ] as const
 
-// ✅ ایجاد کلاینت‌ها
+// viem clients
 const account = privateKeyToAccount(PRIVATE_KEY)
-
-const publicClient = createPublicClient({
-  chain: base,
-  transport: http(RPC_URL)
-})
-
-const walletClient = createWalletClient({
-  chain: base,
-  transport: http(RPC_URL),
-  account
-})
+const publicClient = createPublicClient({ chain: base, transport: http(RPC_URL) })
+const walletClient = createWalletClient({ chain: base, transport: http(RPC_URL), account })
 
 const contract = getContract({
   address: CONTRACT_ADDRESS,
   abi,
-  client: {
-    public: publicClient,
-    wallet: walletClient
-  }
+  client: { public: publicClient, wallet: walletClient },
 })
 
-// مسیر فایل کش
+// Paths
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const DATA_PATH = path.join(__dirname, 'data.json')
 
-// ✅ Watcher برای اجرای forcePayout
+// Watcher
 async function runPayoutWatcher() {
-  console.log(`\n🚀 Job started at ${new Date().toISOString()}`)
+  console.log(`🚀 Job started at ${new Date().toISOString()}`)
 
   try {
     const [roundId, , , timeRemaining] = await contract.read.getGameState()
@@ -126,13 +113,12 @@ async function runPayoutWatcher() {
     }
 
     await fetchRecentRounds()
-    console.log(`✅ Job finished at ${new Date().toISOString()}`)
   } catch (err) {
     console.error('❌ Error in runPayoutWatcher():', err)
   }
 }
 
-// ✅ دریافت و کش آخرین راندها
+// Recent Rounds
 async function fetchRecentRounds() {
   try {
     const totalRounds: bigint = await contract.read.totalRounds()
@@ -143,14 +129,13 @@ async function fetchRecentRounds() {
     for (let i = totalRounds - 1n; i >= from; i--) {
       try {
         const [roundId, winner, reward, timestamp] = await contract.read.getRound([i])
-        if (timestamp !== 0n) {
-          rounds.push({
-            roundId: roundId.toString(),
-            winner,
-            reward: reward.toString(),
-            timestamp: timestamp.toString()
-          })
-        }
+        rounds.push({
+          roundId: roundId.toString(),
+          winner,
+          reward: reward.toString(),
+          timestamp: timestamp.toString(),
+          pending: timestamp === 0n
+        })
       } catch (err) {
         console.warn(`⚠️ Could not fetch round ${i}:`, err)
       }
@@ -163,41 +148,25 @@ async function fetchRecentRounds() {
   }
 }
 
-// ✅ API Server
+// Express API
 const app = express()
 app.use(cors())
 
-app.get('/rounds', async (_req, res) => {
-  console.log('📥 GET /rounds called')
-
+app.get('/api/rounds', async (_req, res) => {
   try {
     const data = await fs.readFile(DATA_PATH, 'utf-8')
     res.setHeader('Content-Type', 'application/json')
     res.send(data)
   } catch {
-    console.warn('⚠️ data.json not found, sending empty array')
     res.status(200).json([])
   }
 })
 
-// ✅ Frontend Static Files
-const distPath = path.join(__dirname, '..', 'dist')
-app.use(express.static(distPath))
-
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(distPath, 'index.html'))
-})
-
-// ✅ Start Server
 const PORT = Number(process.env.PORT) || 3000
-const HOST = '0.0.0.0'
-
-app.listen(PORT, HOST, () => {
-  console.log(`📡 Server ready at http://${HOST}:${PORT}`)
+app.listen(PORT, () => {
+  console.log(`📡 Server ready at http://localhost:${PORT}`)
 })
 
-// ✅ Job Runner
+// Start
 runPayoutWatcher()
 fetchRecentRounds()
-  .then(() => console.log('✅ Round data fetched manually.'))
-  .catch(console.error)
