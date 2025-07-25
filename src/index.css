@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* پایه کل صفحه */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f6f8ff;
+}
+
+/* رنگ اختصاصی Base */
+.bg-baseBlue {
+  background-color: #0052FF;
+}
+
+/* تایمر با انیمیشن pulse */
+.timer {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #0052FF;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* انیمیشن pulse */
+@keyframes pulse {
+  0% {
+    text-shadow: 0 0 8px rgba(0, 82, 255, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 0 0 24px rgba(0, 82, 255, 1);
+    transform: scale(1.05);
+  }
+  100% {
+    text-shadow: 0 0 8px rgba(0, 82, 255, 0.5);
+    transform: scale(1);
+  }
+}
+
+/* افکت انفجار لوگو */
+@keyframes explode {
+  0% {
+    opacity: 1;
+    transform: scale(1) translate(0, 0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2) translate(-50px, -50px) rotate(360deg);
+  }
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
