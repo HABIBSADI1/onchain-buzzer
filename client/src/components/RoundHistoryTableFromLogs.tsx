@@ -12,10 +12,8 @@ type RoundLog = {
 const PAGE_SIZE = 5
 const POLL_INTERVAL = 180_000 // 3 دقیقه
 
-const API_URL =
-  import.meta.env.PROD
-    ? '/api/rounds'
-    : '/api/rounds'
+// استفاده از VITE_API_URL از env
+const API_URL = `${import.meta.env.VITE_API_URL}/rounds`
 
 export default function RoundHistoryTableFromLogs() {
   const [rounds, setRounds] = useState<RoundLog[]>([])
@@ -47,12 +45,10 @@ export default function RoundHistoryTableFromLogs() {
 
   useEffect(() => {
     fetchRounds()
-
     const interval = setInterval(() => {
-      console.log('🔁 Polling /api/rounds...')
+      console.log('🔁 Polling /rounds...')
       fetchRounds()
     }, POLL_INTERVAL)
-
     return () => clearInterval(interval)
   }, [])
 
@@ -98,7 +94,7 @@ export default function RoundHistoryTableFromLogs() {
           {rounds.length > PAGE_SIZE && (
             <div style={{ textAlign: 'center', marginTop: '1rem' }}>
               <button
-                onClick={() => setPage(p => Math.max(0, p - 1))}
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
                 disabled={page === 0}
                 style={btnStyle}
               >
@@ -108,7 +104,11 @@ export default function RoundHistoryTableFromLogs() {
                 Page {page + 1}
               </span>
               <button
-                onClick={() => setPage(p => (p + 1) * PAGE_SIZE < rounds.length ? p + 1 : p)}
+                onClick={() =>
+                  setPage((p) =>
+                    (p + 1) * PAGE_SIZE < rounds.length ? p + 1 : p,
+                  )
+                }
                 disabled={(page + 1) * PAGE_SIZE >= rounds.length}
                 style={btnStyle}
               >
