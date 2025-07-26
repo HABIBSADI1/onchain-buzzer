@@ -55,7 +55,7 @@ export default function RoundHistoryTableFromLogs() {
   const paginated = rounds.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>🏆 Round History</h2>
 
       {loading ? (
