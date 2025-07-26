@@ -71,7 +71,7 @@ export default function App() {
             }}
           >
             <img
-              src="/94.webp"
+              src="/base.webp"
               alt="Base Image"
               style={{
                 maxWidth: '100%',
