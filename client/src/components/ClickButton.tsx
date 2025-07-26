@@ -5,8 +5,8 @@ import {
   useContractWrite,
   useWaitForTransaction,
 } from 'wagmi'
-import abi from '../abi.json'
 import { getAddress } from 'viem'
+import abi from '../abi.json'
 import Explosion from './Explosion'
 import { useGameState } from '../hooks/useGameState'
 
@@ -15,14 +15,15 @@ const CONTRACT_ADDRESS = getAddress(import.meta.env.VITE_CONTRACT_ADDRESS!)
 export default function ClickButton() {
   const { isConnected, address } = useAccount()
   const { refetch } = useGameState()
+
   const [explosion, setExplosion] = useState<{ x: number; y: number } | null>(null)
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle')
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const {
     data: clickFee,
     isLoading: loadingFee,
+    error: feeError,
   } = useContractRead({
     address: CONTRACT_ADDRESS,
     abi,
@@ -38,8 +39,13 @@ export default function ClickButton() {
   })
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!isConnected || !clickFee) {
-      alert('🦊 لطفاً ابتدا کیف پول را متصل کرده و منتظر لود شدن کارمزد باشید.')
+    if (!isConnected) {
+      alert('⚠️ لطفاً ابتدا کیف پول خود را متصل کنید.')
+      return
+    }
+
+    if (typeof clickFee !== 'bigint') {
+      alert('⏳ در حال دریافت مبلغ کلیک از قرارداد. لطفاً چند لحظه صبر کنید.')
       return
     }
 
@@ -48,12 +54,11 @@ export default function ClickButton() {
     setTimeout(() => setExplosion(null), 1000)
 
     setStatus('pending')
-    setErrorMessage(null)
 
     try {
       console.log('👤 Wallet:', address)
-      console.log('💰 Click Fee (wei):', clickFee.toString())
-      console.log('📍 Contract:', CONTRACT_ADDRESS)
+      console.log('📦 Contract:', CONTRACT_ADDRESS)
+      console.log('💸 clickFee (wei):', clickFee.toString())
 
       const tx = await writeAsync({
         recklesslySetUnpreparedArgs: [],
@@ -62,11 +67,11 @@ export default function ClickButton() {
         },
       })
 
-      console.log('🚀 Transaction sent:', tx.hash)
+      console.log('📤 Transaction sent:', tx.hash)
       setTxHash(tx.hash)
     } catch (err: any) {
-      console.error('❌ Transaction failed:', err)
-      setErrorMessage(err?.message || 'خطای ناشناخته در تراکنش')
+      console.error('❌ TX Error:', err)
+      alert('❌ تراکنش شکست خورد: ' + (err?.message || 'نامشخص'))
       setStatus('error')
     }
   }
@@ -74,13 +79,10 @@ export default function ClickButton() {
   useWaitForTransaction({
     hash: txHash,
     onSuccess: () => {
-      console.log('✅ Transaction confirmed:', txHash)
       setStatus('success')
       refetch()
     },
-    onError: (err) => {
-      console.error('❌ Transaction error:', err)
-      setErrorMessage('تراکنش تایید نشد.')
+    onError: () => {
       setStatus('error')
     },
   })
@@ -89,7 +91,7 @@ export default function ClickButton() {
     <div style={{ position: 'relative', marginTop: '1.5rem' }}>
       <button
         onClick={handleClick}
-        disabled={status === 'pending' || !clickFee}
+        disabled={status === 'pending' || !clickFee || loadingFee}
         style={{
           backgroundColor: '#0052FF',
           color: '#fff',
@@ -98,7 +100,7 @@ export default function ClickButton() {
           fontWeight: 600,
           border: 'none',
           borderRadius: '12px',
-          cursor: status === 'pending' || !clickFee ? 'not-allowed' : 'pointer',
+          cursor: 'pointer',
           boxShadow: '0 0 12px rgba(0,82,255,0.4)',
         }}
       >
@@ -106,15 +108,15 @@ export default function ClickButton() {
       </button>
 
       {explosion && <Explosion x={explosion.x} y={explosion.y} type="emoji" />}
-      {status === 'success' && <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ Buzz confirmed!</p>}
-      {status === 'error' && (
-        <p style={{ color: 'red', marginTop: '0.5rem' }}>
-          ❌ Transaction failed<br />
-          {errorMessage}
-        </p>
-      )}
+
       {status === 'pending' && (
-        <p style={{ color: '#007bff', marginTop: '0.5rem' }}>⏳ Waiting for confirmation...</p>
+        <p style={{ color: '#007bff', marginTop: '0.5rem' }}>⏳ در انتظار تأیید تراکنش...</p>
+      )}
+      {status === 'success' && (
+        <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ تراکنش با موفقیت انجام شد!</p>
+      )}
+      {status === 'error' && (
+        <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ تراکنش شکست خورد</p>
       )}
     </div>
   )
