@@ -5,8 +5,8 @@ import {
   useContractWrite,
   useWaitForTransaction,
 } from 'wagmi'
-import { getAddress } from 'viem'
 import abi from '../abi.json'
+import { getAddress, parseEther } from 'viem'
 import Explosion from './Explosion'
 import { useGameState } from '../hooks/useGameState'
 
@@ -15,7 +15,6 @@ const CONTRACT_ADDRESS = getAddress(import.meta.env.VITE_CONTRACT_ADDRESS!)
 export default function ClickButton() {
   const { isConnected, address } = useAccount()
   const { refetch } = useGameState()
-
   const [explosion, setExplosion] = useState<{ x: number; y: number } | null>(null)
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle')
@@ -39,13 +38,8 @@ export default function ClickButton() {
   })
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!isConnected) {
-      alert('⚠️ لطفاً ابتدا کیف پول خود را متصل کنید.')
-      return
-    }
-
-    if (typeof clickFee !== 'bigint') {
-      alert('⏳ در حال دریافت مبلغ کلیک از قرارداد. لطفاً چند لحظه صبر کنید.')
+    if (!isConnected || !clickFee) {
+      alert('کیف پول متصل نیست یا مقدار فی لود نشده')
       return
     }
 
@@ -56,22 +50,23 @@ export default function ClickButton() {
     setStatus('pending')
 
     try {
-      console.log('👤 Wallet:', address)
-      console.log('📦 Contract:', CONTRACT_ADDRESS)
-      console.log('💸 clickFee (wei):', clickFee.toString())
+      console.log('📍 شبکه: Base')
+      console.log('👤 آدرس کاربر:', address)
+      console.log('🪙 Click Fee:', clickFee.toString())
+      console.log('📩 ارسال تراکنش به:', CONTRACT_ADDRESS)
 
       const tx = await writeAsync({
         recklesslySetUnpreparedArgs: [],
         recklesslySetUnpreparedOverrides: {
-          value: clickFee,
+          value: BigInt(clickFee.toString()), // اطمینان از نوع bigint
         },
       })
 
-      console.log('📤 Transaction sent:', tx.hash)
+      console.log('📤 تراکنش ارسال شد:', tx.hash)
       setTxHash(tx.hash)
     } catch (err: any) {
-      console.error('❌ TX Error:', err)
-      alert('❌ تراکنش شکست خورد: ' + (err?.message || 'نامشخص'))
+      console.error('❌ خطای تراکنش:', err)
+      alert('تراکنش شکست خورد: ' + (err?.message || 'خطای ناشناخته'))
       setStatus('error')
     }
   }
@@ -91,7 +86,7 @@ export default function ClickButton() {
     <div style={{ position: 'relative', marginTop: '1.5rem' }}>
       <button
         onClick={handleClick}
-        disabled={status === 'pending' || !clickFee || loadingFee}
+        disabled={status === 'pending' || loadingFee}
         style={{
           backgroundColor: '#0052FF',
           color: '#fff',
@@ -108,16 +103,10 @@ export default function ClickButton() {
       </button>
 
       {explosion && <Explosion x={explosion.x} y={explosion.y} type="emoji" />}
-
-      {status === 'pending' && (
-        <p style={{ color: '#007bff', marginTop: '0.5rem' }}>⏳ در انتظار تأیید تراکنش...</p>
-      )}
-      {status === 'success' && (
-        <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ تراکنش با موفقیت انجام شد!</p>
-      )}
-      {status === 'error' && (
-        <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ تراکنش شکست خورد</p>
-      )}
+      {status === 'success' && <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ Buzz confirmed!</p>}
+      {status === 'error' && <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ Transaction failed</p>}
+      {status === 'pending' && <p style={{ color: '#007bff', marginTop: '0.5rem' }}>⏳ Waiting for confirmation...</p>}
+      {feeError && <p style={{ color: 'red' }}>❗ خطا در خواندن فی: {feeError.message}</p>}
     </div>
   )
 }
