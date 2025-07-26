@@ -21,22 +21,26 @@ export default function ClickButton() {
 
   // خواندن مقدار clickFee از کانترکت
   const {
-    data: clickFeeRaw,
-    isLoading: loadingFee,
-    error: feeError,
-  } = useContractRead({
-    address: CONTRACT_ADDRESS,
-    abi,
-    functionName: 'clickFee',
-    watch: true,
-  })
+  data: clickFeeRaw,
+} = useContractRead({
+  address: CONTRACT_ADDRESS,
+  abi,
+  functionName: 'clickFee',
+})
 
-  const { writeAsync } = useContractWrite({
-    address: CONTRACT_ADDRESS,
-    abi,
-    functionName: 'click',
-    mode: 'recklesslyUnprepared',
-  })
+const fee =
+  typeof clickFeeRaw === 'bigint'
+    ? clickFeeRaw
+    : BigInt(clickFeeRaw?.toString?.() || '0')
+
+// ...
+const tx = await writeAsync({
+  recklesslySetUnpreparedArgs: [],
+  recklesslySetUnpreparedOverrides: {
+    value: fee, // ✅ دقیقاً همون چیزی که از کانترکت گرفتیم
+  },
+})
+
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     const fee =
