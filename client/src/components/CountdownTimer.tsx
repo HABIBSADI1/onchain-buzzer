@@ -65,7 +65,7 @@ export default function CountdownTimer() {
       justifyContent: 'center',
       gap: '1rem',
     }}>
-      ⏱ <span>{formatTime(seconds)}</span>
+       <span>{formatTime(seconds)}</span>
     </div>
   )
 }
