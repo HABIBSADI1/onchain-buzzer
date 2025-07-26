@@ -20,17 +20,28 @@ export default function ClickButton() {
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle')
 
-  const {
-    data: clickFee,
-    isLoading: loadingFee,
-  } = useContractRead({
+  const { data: clickFee } = useContractRead({
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'clickFee',
     watch: true,
   })
 
-  const { writeAsync } = useContractWrite({
+  const { data: timeLeft } = useContractRead({
+    address: CONTRACT_ADDRESS,
+    abi,
+    functionName: 'timeRemaining',
+    watch: true,
+  })
+
+  const { writeAsync: forcePayout } = useContractWrite({
+    address: CONTRACT_ADDRESS,
+    abi,
+    functionName: 'forcePayout',
+    mode: 'recklesslyUnprepared',
+  })
+
+  const { writeAsync: click } = useContractWrite({
     address: CONTRACT_ADDRESS,
     abi,
     functionName: 'click',
@@ -38,13 +49,8 @@ export default function ClickButton() {
   })
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!isConnected) {
-      alert('Please connect your wallet.')
-      return
-    }
-
-    if (!clickFee) {
-      alert('Fetching click fee, please wait.')
+    if (!isConnected || !clickFee) {
+      alert('Please connect wallet and wait for data.')
       return
     }
 
@@ -55,20 +61,27 @@ export default function ClickButton() {
     setStatus('pending')
 
     try {
-      console.log('Click fee (wei):', clickFee?.toString())
+      // If round expired, force payout first
+      if (timeLeft === 0n) {
+        console.log('Triggering forcePayout...')
+        await forcePayout()
+        await new Promise((res) => setTimeout(res, 2000)) // delay before next tx
+      }
 
-      const tx = await writeAsync({
+      console.log('Clicking with fee:', clickFee.toString())
+
+      const tx = await click({
         recklesslySetUnpreparedArgs: [],
         recklesslySetUnpreparedOverrides: {
-          value: BigInt(clickFee.toString()),
+          value: clickFee,
         },
       })
 
       setTxHash(tx.hash)
-      console.log('Transaction sent:', tx.hash)
+      console.log('TX sent:', tx.hash)
     } catch (err: any) {
-      console.error('Transaction error:', err)
-      alert('Transaction failed:\n' + (err?.shortMessage || err?.message || 'Unknown error'))
+      console.error('TX error:', err)
+      alert('Transaction failed:\n' + (err?.shortMessage || err?.message || 'Unknown'))
       setStatus('error')
     }
   }
@@ -79,16 +92,14 @@ export default function ClickButton() {
       setStatus('success')
       refetch()
     },
-    onError: () => {
-      setStatus('error')
-    },
+    onError: () => setStatus('error'),
   })
 
   return (
     <div style={{ position: 'relative', marginTop: '1.5rem' }}>
       <button
         onClick={handleClick}
-        disabled={status === 'pending' || loadingFee}
+        disabled={status === 'pending' || !clickFee}
         style={{
           backgroundColor: '#0052FF',
           color: '#fff',
