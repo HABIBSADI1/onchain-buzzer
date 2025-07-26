@@ -22,26 +22,33 @@ export default function RoundHistoryTableFromLogs() {
   const [page, setPage] = useState(0)
 
   const fetchRounds = async () => {
-    try {
-      const res = await fetch(API_URL)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  try {
+    const res = await fetch(API_URL)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
-      const contentType = res.headers.get('Content-Type')
-      if (!contentType?.includes('application/json')) {
-        const html = await res.text()
-        console.warn('❌ Expected JSON, got:', html.slice(0, 100))
-        throw new Error('Invalid response type')
-      }
-
-      const data: RoundLog[] = await res.json()
-      setRounds(data)
-    } catch (err: any) {
-      console.error('❌ Error fetching rounds:', err)
-      setError(err.message || 'Unknown error')
-    } finally {
-      setLoading(false)
+    const contentType = res.headers.get('Content-Type')
+    if (!contentType?.includes('application/json')) {
+      const html = await res.text()
+      console.warn('❌ Expected JSON, got:', html.slice(0, 100))
+      throw new Error('Invalid response type')
     }
+
+    const newData: RoundLog[] = await res.json()
+
+    // فقط راندهای جدید رو اضافه کن
+    setRounds(prev => {
+      const knownIds = new Set(prev.map(r => r.roundId))
+      const fresh = newData.filter(r => !knownIds.has(r.roundId))
+      return [...prev, ...fresh].sort((a, b) => Number(b.roundId) - Number(a.roundId)) // مرتب از جدید به قدیم
+    })
+
+  } catch (err: any) {
+    console.error('❌ Error fetching rounds:', err)
+    setError(err.message || 'Unknown error')
+  } finally {
+    setLoading(false)
   }
+}
 
   useEffect(() => {
     fetchRounds()
