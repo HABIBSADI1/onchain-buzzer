@@ -19,10 +19,11 @@ export default function ClickButton() {
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle')
 
-  // 📡 خواندن مقدار clickFee از کانترکت
+  // خواندن مقدار clickFee از کانترکت
   const {
-    data: clickFee,
+    data: clickFeeRaw,
     isLoading: loadingFee,
+    error: feeError,
   } = useContractRead({
     address: CONTRACT_ADDRESS,
     abi,
@@ -30,7 +31,6 @@ export default function ClickButton() {
     watch: true,
   })
 
-  // 📝 تنظیمات تابع click
   const { writeAsync } = useContractWrite({
     address: CONTRACT_ADDRESS,
     abi,
@@ -38,19 +38,22 @@ export default function ClickButton() {
     mode: 'recklesslyUnprepared',
   })
 
-  // 🎯 اجرای کلیک
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    const fee =
+      typeof clickFeeRaw === 'bigint'
+        ? clickFeeRaw
+        : BigInt(clickFeeRaw?.toString?.() || '0')
+
     if (!isConnected) {
-      alert('🦊 Please connect your wallet.')
+      alert('🦊 لطفاً کیف پول را متصل کنید.')
       return
     }
 
-    if (!clickFee) {
-      alert('⏳ Waiting for fee to load...')
+    if (!fee || fee === BigInt(0)) {
+      alert('⛽ کارمزد بارگذاری نشده. لطفاً کمی صبر کنید...')
       return
     }
 
-    // نمایش انفجار
     const rect = e.currentTarget.getBoundingClientRect()
     setExplosion({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
     setTimeout(() => setExplosion(null), 1000)
@@ -58,50 +61,46 @@ export default function ClickButton() {
     setStatus('pending')
 
     try {
-      const fee =
-        typeof clickFee === 'bigint'
-          ? clickFee
-          : BigInt(clickFee?.toString?.() || '0')
-
-      console.log('👤 Address:', address)
-      console.log('💰 Fee to send:', fee.toString())
+      console.log('📍 Network: Base')
+      console.log('👤 Wallet address:', address)
+      console.log('💰 clickFee (wei):', fee.toString())
+      console.log('📜 Contract:', CONTRACT_ADDRESS)
 
       const tx = await writeAsync({
         recklesslySetUnpreparedArgs: [],
         recklesslySetUnpreparedOverrides: {
           value: fee,
+          // gasLimit: BigInt(150000), // اختیاری: برای شبکه‌های با محدودیت
         },
       })
 
-      console.log('📤 Transaction sent:', tx.hash)
+      console.log('🚀 TX submitted:', tx.hash)
       setTxHash(tx.hash)
     } catch (err: any) {
-      console.error('❌ TX Error:', err)
-      alert('Transaction failed:\n' + (err?.message || 'Unknown error'))
+      console.error('❌ TX Error (JSON-RPC):', err)
+      alert('❌ تراکنش شکست خورد: ' + (err?.message || 'خطای ناشناخته'))
       setStatus('error')
     }
   }
 
-  // ⏳ بررسی وضعیت تراکنش
   useWaitForTransaction({
     hash: txHash,
     onSuccess: () => {
-      console.log('✅ TX confirmed')
+      console.log('✅ Transaction confirmed:', txHash)
       setStatus('success')
       refetch()
     },
-    onError: (error) => {
-      console.error('❌ TX failed on confirmation:', error)
+    onError: (err) => {
+      console.error('❌ Confirm error:', err)
       setStatus('error')
     },
   })
 
-  // 🖼️ رندر
   return (
     <div style={{ position: 'relative', marginTop: '1.5rem' }}>
       <button
         onClick={handleClick}
-        disabled={status === 'pending' || loadingFee || !clickFee}
+        disabled={status === 'pending' || !clickFeeRaw}
         style={{
           backgroundColor: '#0052FF',
           color: '#fff',
@@ -110,7 +109,7 @@ export default function ClickButton() {
           fontWeight: 600,
           border: 'none',
           borderRadius: '12px',
-          cursor: status === 'pending' || !clickFee ? 'not-allowed' : 'pointer',
+          cursor: 'pointer',
           boxShadow: '0 0 12px rgba(0,82,255,0.4)',
         }}
       >
@@ -118,12 +117,9 @@ export default function ClickButton() {
       </button>
 
       {explosion && <Explosion x={explosion.x} y={explosion.y} type="emoji" />}
-
-      <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
-        {status === 'pending' && <p style={{ color: '#007bff' }}>⏳ Waiting for confirmation...</p>}
-        {status === 'success' && <p style={{ color: 'green' }}>✅ Buzz confirmed!</p>}
-        {status === 'error' && <p style={{ color: 'red' }}>❌ Transaction failed</p>}
-      </div>
+      {status === 'success' && <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ Buzz confirmed!</p>}
+      {status === 'error' && <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ Transaction failed</p>}
+      {status === 'pending' && <p style={{ color: '#007bff', marginTop: '0.5rem' }}>⏳ Waiting for confirmation...</p>}
     </div>
   )
 }
