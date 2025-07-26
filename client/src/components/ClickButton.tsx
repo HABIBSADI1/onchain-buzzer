@@ -39,41 +39,37 @@ export default function ClickButton() {
   })
 
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!isConnected) {
-      alert('لطفاً کیف پول خود را متصل کنید.')
-      return
-    }
-
-    if (!clickFee) {
-      alert('در حال دریافت مبلغ کلیک از قرارداد، لطفاً چند لحظه صبر کنید.')
-      return
-    }
-
-    const rect = e.currentTarget.getBoundingClientRect()
-    setExplosion({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
-    setTimeout(() => setExplosion(null), 1000)
-
-    setStatus('pending')
-
-    try {
-      console.log('👤 Address:', address)
-      console.log('🔹 clickFee:', clickFee.toString())
-
-      const tx = await writeAsync({
-        recklesslySetUnpreparedArgs: [],
-        recklesslySetUnpreparedOverrides: {
-          value: clickFee,
-        },
-      })
-
-      console.log('📤 Transaction sent:', tx.hash)
-      setTxHash(tx.hash)
-    } catch (err: any) {
-      console.error('❌ TX Error:', err)
-      alert('تراکنش شکست خورد:\n' + (err?.shortMessage || err?.message || 'Unknown error'))
-      setStatus('error')
-    }
+  if (!isConnected) {
+    alert('لطفاً کیف پول را متصل کنید.')
+    return
   }
+
+  if (!clickFee) {
+    alert('در حال دریافت مبلغ کلیک از قرارداد، لطفاً چند لحظه صبر کنید.')
+    return
+  }
+
+  const rect = e.currentTarget.getBoundingClientRect()
+  setExplosion({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+  setTimeout(() => setExplosion(null), 1000)
+
+  setStatus('pending')
+
+  try {
+    const tx = await writeAsync({
+      recklesslySetUnpreparedArgs: [],
+      recklesslySetUnpreparedOverrides: {
+        value: BigInt(clickFee.toString()), // 👈 اینجا حتماً BigInt باشه
+      },
+    })
+
+    setTxHash(tx.hash)
+  } catch (err: any) {
+    console.error('❌ TX Error:', err)
+    alert('تراکنش شکست خورد:\n' + (err?.shortMessage || err?.message || 'Unknown error'))
+    setStatus('error')
+  }
+}
 
   useWaitForTransaction({
     hash: txHash,
