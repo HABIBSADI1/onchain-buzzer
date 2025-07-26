@@ -19,7 +19,7 @@ export default function ClickButton() {
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>()
   const [status, setStatus] = useState<'idle' | 'pending' | 'success' | 'error'>('idle')
 
-  // خواندن مقدار clickFee از کانترکت
+  // 📡 خواندن مقدار clickFee از کانترکت
   const {
     data: clickFee,
     isLoading: loadingFee,
@@ -30,6 +30,7 @@ export default function ClickButton() {
     watch: true,
   })
 
+  // 📝 تنظیمات تابع click
   const { writeAsync } = useContractWrite({
     address: CONTRACT_ADDRESS,
     abi,
@@ -37,12 +38,19 @@ export default function ClickButton() {
     mode: 'recklesslyUnprepared',
   })
 
+  // 🎯 اجرای کلیک
   const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!isConnected || !clickFee) {
-      alert('Please connect wallet and wait for fee to load.')
+    if (!isConnected) {
+      alert('🦊 Please connect your wallet.')
       return
     }
 
+    if (!clickFee) {
+      alert('⏳ Waiting for fee to load...')
+      return
+    }
+
+    // نمایش انفجار
     const rect = e.currentTarget.getBoundingClientRect()
     setExplosion({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
     setTimeout(() => setExplosion(null), 1000)
@@ -50,13 +58,18 @@ export default function ClickButton() {
     setStatus('pending')
 
     try {
+      const fee =
+        typeof clickFee === 'bigint'
+          ? clickFee
+          : BigInt(clickFee?.toString?.() || '0')
+
       console.log('👤 Address:', address)
-      console.log('🔹 clickFee:', clickFee.toString())
+      console.log('💰 Fee to send:', fee.toString())
 
       const tx = await writeAsync({
         recklesslySetUnpreparedArgs: [],
         recklesslySetUnpreparedOverrides: {
-          value: clickFee,
+          value: fee,
         },
       })
 
@@ -64,27 +77,31 @@ export default function ClickButton() {
       setTxHash(tx.hash)
     } catch (err: any) {
       console.error('❌ TX Error:', err)
-      alert('Transaction failed: ' + (err?.message || 'Unknown'))
+      alert('Transaction failed:\n' + (err?.message || 'Unknown error'))
       setStatus('error')
     }
   }
 
+  // ⏳ بررسی وضعیت تراکنش
   useWaitForTransaction({
     hash: txHash,
     onSuccess: () => {
+      console.log('✅ TX confirmed')
       setStatus('success')
       refetch()
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('❌ TX failed on confirmation:', error)
       setStatus('error')
     },
   })
 
+  // 🖼️ رندر
   return (
     <div style={{ position: 'relative', marginTop: '1.5rem' }}>
       <button
         onClick={handleClick}
-        disabled={status === 'pending' || !clickFee}
+        disabled={status === 'pending' || loadingFee || !clickFee}
         style={{
           backgroundColor: '#0052FF',
           color: '#fff',
@@ -93,7 +110,7 @@ export default function ClickButton() {
           fontWeight: 600,
           border: 'none',
           borderRadius: '12px',
-          cursor: 'pointer',
+          cursor: status === 'pending' || !clickFee ? 'not-allowed' : 'pointer',
           boxShadow: '0 0 12px rgba(0,82,255,0.4)',
         }}
       >
@@ -101,9 +118,12 @@ export default function ClickButton() {
       </button>
 
       {explosion && <Explosion x={explosion.x} y={explosion.y} type="emoji" />}
-      {status === 'success' && <p style={{ color: 'green', marginTop: '0.5rem' }}>✅ Buzz confirmed!</p>}
-      {status === 'error' && <p style={{ color: 'red', marginTop: '0.5rem' }}>❌ Transaction failed</p>}
-      {status === 'pending' && <p style={{ color: '#007bff', marginTop: '0.5rem' }}>⏳ Waiting for confirmation...</p>}
+
+      <div style={{ marginTop: '0.5rem', textAlign: 'center' }}>
+        {status === 'pending' && <p style={{ color: '#007bff' }}>⏳ Waiting for confirmation...</p>}
+        {status === 'success' && <p style={{ color: 'green' }}>✅ Buzz confirmed!</p>}
+        {status === 'error' && <p style={{ color: 'red' }}>❌ Transaction failed</p>}
+      </div>
     </div>
   )
 }
