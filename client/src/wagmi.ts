@@ -1,7 +1,6 @@
 import { configureChains, createClient } from 'wagmi'
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
-import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 
 const baseChain = {
@@ -9,7 +8,9 @@ const baseChain = {
   name: 'Base',
   network: 'base',
   nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-  rpcUrls: { default: { http: [import.meta.env.VITE_RPC_URL!] } },
+  rpcUrls: {
+    default: { http: [import.meta.env.VITE_RPC_URL!] },
+  },
   blockExplorers: {
     default: { name: 'Basescan', url: 'https://basescan.org' },
   },
@@ -31,19 +32,7 @@ export const client = createClient({
         appName: 'Onchain Buzzer',
       },
     }),
-    new WalletConnectConnector({
-      chains,
-      options: {
-        projectId: import.meta.env.VITE_WC_PROJECT_ID!,
-        showQrModal: true,
-        metadata: {
-          name: 'Onchain Buzzer',
-          description: 'Buzz and win ETH!',
-          url: 'https://onchain-buzzer.xyz',
-          icons: ['https://onchain-buzzer.xyz/logo.png'],
-        },
-      },
-    }),
+    // ❌ Removed WalletConnectConnector: handled internally by ConnectKit
   ],
   provider,
   webSocketProvider,
