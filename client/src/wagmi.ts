@@ -1,4 +1,4 @@
-import { createClient, configureChains } from 'wagmi'
+import { configureChains, createClient } from 'wagmi'
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
@@ -10,7 +10,9 @@ const baseChain = {
   network: 'base',
   nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
   rpcUrls: { default: { http: [import.meta.env.VITE_RPC_URL!] } },
-  blockExplorers: { default: { name: 'Basescan', url: 'https://basescan.org' } },
+  blockExplorers: {
+    default: { name: 'Basescan', url: 'https://basescan.org' },
+  },
   testnet: false,
 }
 
@@ -21,20 +23,22 @@ const { chains, provider, webSocketProvider } = configureChains(
 
 export const client = createClient({
   autoConnect: true,
-  connectors: () => [
+  connectors: [
     new MetaMaskConnector({ chains }),
     new CoinbaseWalletConnector({
       chains,
-      options: { appName: 'Onchain Buzzer' },
+      options: {
+        appName: 'Onchain Buzzer',
+      },
     }),
     new WalletConnectConnector({
       chains,
       options: {
         projectId: import.meta.env.VITE_WC_PROJECT_ID!,
-        showQrModal: false,
+        showQrModal: true,
         metadata: {
           name: 'Onchain Buzzer',
-          description: 'Buzz and win ETH',
+          description: 'Buzz and win ETH!',
           url: 'https://onchain-buzzer.xyz',
           icons: ['https://onchain-buzzer.xyz/logo.png'],
         },
