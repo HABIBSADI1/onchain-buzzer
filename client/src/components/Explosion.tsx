@@ -7,6 +7,12 @@ interface ExplosionProps {
 }
 
 const emojiList = ['🎉', '🚀', '😂', '💥', '🤑', '🔥', '🤯', '🦄']
+const logoList = [
+  '/_base-square.svg',
+  '/base logo3.svg',
+  '/base-logo (2).svg',
+  '/Base_Network_Logo4.svg',
+]
 
 export default function Explosion({ x, y, type }: ExplosionProps) {
   useEffect(() => {
@@ -25,7 +31,8 @@ export default function Explosion({ x, y, type }: ExplosionProps) {
         el.innerHTML = emojiList[Math.floor(Math.random() * emojiList.length)]
         el.style.fontSize = '24px'
       } else {
-        el.setAttribute('src', '/_base-square.svg')
+        const src = logoList[Math.floor(Math.random() * logoList.length)]
+        el.setAttribute('src', src)
         el.style.width = '20px'
         el.style.height = '20px'
       }
