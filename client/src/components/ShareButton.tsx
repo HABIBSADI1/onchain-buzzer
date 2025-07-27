@@ -1,6 +1,6 @@
 export default function ShareButton() {
   const shareText = encodeURIComponent(
-    "🔥 I just buzzed in the Onchain Buzzer Game on @BuildOnBase! Try your luck before the timer runs out! https://yourapp.com #onchainSummer #base"
+    "Just buzzed the button! ⏱️ Who’s gonna be the last click and take the ETH pot? 👀 Join the game on @BuildOnBase #onchainSummer 👉 https://yourapp.com"
   )
 
   const twitterUrl = `https://twitter.com/intent/tweet?text=${shareText}`
@@ -14,7 +14,7 @@ export default function ShareButton() {
         rel="noopener noreferrer"
         style={buttonStyle}
       >
-         Share on X
+        Share on X
       </a>
       <a
         href={farcasterUrl}
@@ -22,7 +22,7 @@ export default function ShareButton() {
         rel="noopener noreferrer"
         style={buttonStyle}
       >
-         Share on Farcaster
+        Share on Farcaster
       </a>
     </div>
   )
