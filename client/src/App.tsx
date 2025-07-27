@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import ClickButton from './components/ClickButton'
 import CountdownTimer from './components/CountdownTimer'
 import GameInfoTable from './components/GameInfoTable'
-import RoundHistoryTable from "./components/RoundHistoryTableFromLogs";
+import RoundHistoryTable from './components/RoundHistoryTableFromLogs'
 import ShareButton from './components/ShareButton'
 import Header from './components/Header'
 import Footer from './components/Footer'
@@ -13,12 +13,26 @@ const containerStyle: React.CSSProperties = {
   backgroundColor: '#f7f9ff',
   minHeight: '100vh',
   display: 'flex',
-  flexDirection: 'column' as const,
+  flexDirection: 'column',
   fontFamily: '"Inter", sans-serif',
+}
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  return isMobile
 }
 
 export default function App() {
   const [globalExplosion, setGlobalExplosion] = useState<{ x: number; y: number } | null>(null)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -35,7 +49,7 @@ export default function App() {
     <div style={containerStyle}>
       <Header />
 
-      <div style={{ position: 'absolute', top: '3rem', right: '2rem', zIndex: 50 }}>
+      <div style={{ position: 'absolute', top: '3rem', right: '1rem', zIndex: 50 }}>
         <ConnectButton />
       </div>
 
@@ -45,7 +59,7 @@ export default function App() {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: '2rem',
+          padding: isMobile ? '1rem' : '2rem',
         }}
       >
         <div
@@ -53,10 +67,12 @@ export default function App() {
             width: '100%',
             maxWidth: '1280px',
             display: 'flex',
-            gap: '2rem',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: '1.5rem',
             alignItems: 'stretch',
           }}
         >
+          {/* Image Box */}
           <div
             style={{
               flex: 1,
@@ -67,7 +83,7 @@ export default function App() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              minHeight: '580px',
+              minHeight: isMobile ? '240px' : '580px',
             }}
           >
             <img
@@ -81,20 +97,22 @@ export default function App() {
             />
           </div>
 
+          {/* Interaction Box */}
           <div
             style={{
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              minHeight: '580px',
+              minHeight: isMobile ? 'auto' : '580px',
             }}
           >
+            {/* Timer + Click */}
             <div
               style={{
                 background: '#fff',
                 borderRadius: '12px',
-                padding: '3rem',
+                padding: isMobile ? '1.5rem' : '3rem',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -106,11 +124,12 @@ export default function App() {
               <ClickButton />
             </div>
 
+            {/* Share */}
             <div
               style={{
                 background: '#fff',
                 borderRadius: '12px',
-                padding: '1.5rem',
+                padding: '1rem',
                 marginTop: '1rem',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
                 textAlign: 'center',
@@ -119,6 +138,7 @@ export default function App() {
               <ShareButton />
             </div>
 
+            {/* Game Info */}
             <div
               style={{
                 background: '#fff',
@@ -143,6 +163,7 @@ export default function App() {
         </div>
       </main>
 
+      {/* Round History */}
       <div
         style={{
           background: '#f7f9ff',
@@ -161,21 +182,15 @@ export default function App() {
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
           }}
         >
-          <h3
-            style={{
-              color: '#002266',
-              marginBottom: '1rem',
-              fontWeight: 'bold',
-            }}
-          >
-          </h3>
           <RoundHistoryTable />
         </div>
       </div>
 
       <Footer />
 
-      {globalExplosion && <Explosion x={globalExplosion.x} y={globalExplosion.y} type="logo" />}
+      {globalExplosion && (
+        <Explosion x={globalExplosion.x} y={globalExplosion.y} type="logo" />
+      )}
     </div>
   )
 }
