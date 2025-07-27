@@ -17,7 +17,7 @@ export default function Header() {
           animation: 'scrollText 15s linear infinite',
         }}
       >
-        🎉 Join the Onchain Buzzer Game on Base – Last click wins the pot! 💰 Play now, win big! 🚀 #onchainSummer #base
+        🎉 Join the FinalClick Game on Base – Last click wins the pot! 💰 Play now, win big! 🚀 #onchainSummer #base
       </div>
 
       {/* Keyframes CSS */}

@@ -28,7 +28,7 @@ export const client = createClient({
     new CoinbaseWalletConnector({
       chains,
       options: {
-        appName: 'Onchain Buzzer',
+        appName: 'FinalClick',
       },
     }),
     new WalletConnectConnector({
@@ -37,10 +37,10 @@ export const client = createClient({
         projectId: import.meta.env.VITE_WC_PROJECT_ID!,
         showQrModal: false, // ⛔ مهم: از QR modal داخلی ConnectKit استفاده کن
         metadata: {
-          name: 'Onchain Buzzer',
+          name: 'Final Click',
           description: 'Buzz and win ETH!',
-          url: 'https://onchain-buzzer.xyz',
-          icons: ['https://onchain-buzzer.xyz/logo.png'],
+          url: 'https://finalclick.xyz',
+          icons: ['https://finalclick.xyz/logo.png'],
         },
       },
     }),

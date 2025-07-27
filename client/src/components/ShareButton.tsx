@@ -1,9 +1,9 @@
 export default function ShareButton() {
   const shareText = encodeURIComponent(
-    "Just buzzed the button! ⏱️ Who’s gonna be the last click and take the ETH pot? 👀 Join the game on @BuildOnBase #onchainSummer 👉 https://yourapp.com"
+    "Just buzzed the button! ⏱️ Who’s gonna be the last click and take the ETH pot? 👀 Join the game on @FinalClickBase #onchainSummer 👉 https://finalclick.xyz"
   )
 
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${shareText}`
+  const twitterUrl = `https://x.com/intent/tweet?text=${shareText}`
   const farcasterUrl = `https://warpcast.com/~/compose?text=${shareText}`
 
   return (
