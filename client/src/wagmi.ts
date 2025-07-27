@@ -1,6 +1,7 @@
 import { configureChains, createClient } from 'wagmi'
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
+import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 
 const baseChain = {
@@ -8,9 +9,7 @@ const baseChain = {
   name: 'Base',
   network: 'base',
   nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
-  rpcUrls: {
-    default: { http: [import.meta.env.VITE_RPC_URL!] },
-  },
+  rpcUrls: { default: { http: [import.meta.env.VITE_RPC_URL!] } },
   blockExplorers: {
     default: { name: 'Basescan', url: 'https://basescan.org' },
   },
@@ -25,14 +24,24 @@ const { chains, provider, webSocketProvider } = configureChains(
 export const client = createClient({
   autoConnect: true,
   connectors: [
-    new MetaMaskConnector({ chains }),
+    new MetaMaskConnector({ chains }), // ✅ برای injected wallets مثل MetaMask و Rabby
     new CoinbaseWalletConnector({
       chains,
+      options: { appName: 'Final Click' },
+    }),
+    new WalletConnectConnector({
+      chains,
       options: {
-        appName: 'Onchain Buzzer',
+        projectId: import.meta.env.VITE_WC_PROJECT_ID!,
+        showQrModal: true, // ✅ اجازه می‌ده بقیه کیف‌ها اضافه شن
+        metadata: {
+          name: 'Final Click',
+          description: 'Buzz and win ETH!',
+          url: 'https://finalclick.xyz',
+          icons: ['https://finalclick.xyz/logo.png'],
+        },
       },
     }),
-    // ❌ Removed WalletConnectConnector: handled internally by ConnectKit
   ],
   provider,
   webSocketProvider,
