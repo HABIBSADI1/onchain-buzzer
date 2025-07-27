@@ -16,13 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         options={{
           enforceSupportedChains: true,
           hideAvatar: true,
-          walletConnectCTA: 'modal', // ✅ فعال بودن QR و fallback برای کیف‌های مختلف
+          walletConnectCTA: 'modal', // ✅ فقط از ConnectKit برای QR استفاده میشه
           customTheme: {
             '--ck-overlay-background': 'rgba(0,0,0,0.6)',
-            '--ck-connectbutton-background': '#0052FF',
-            '--ck-connectbutton-color': '#ffffff',
-            '--ck-connectbutton-hover-background': '#003dcc',
-            '--ck-primary-button-background': '#0052FF',
           },
         }}
       >

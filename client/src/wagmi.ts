@@ -24,21 +24,23 @@ const { chains, provider, webSocketProvider } = configureChains(
 export const client = createClient({
   autoConnect: true,
   connectors: [
-    new MetaMaskConnector({ chains }), // ✅ برای injected wallets مثل MetaMask و Rabby
+    new MetaMaskConnector({ chains }),
     new CoinbaseWalletConnector({
       chains,
-      options: { appName: 'Final Click' },
+      options: {
+        appName: 'Onchain Buzzer',
+      },
     }),
     new WalletConnectConnector({
       chains,
       options: {
         projectId: import.meta.env.VITE_WC_PROJECT_ID!,
-        showQrModal: true, // ✅ اجازه می‌ده بقیه کیف‌ها اضافه شن
+        showQrModal: false, // ⛔ مهم: از QR modal داخلی ConnectKit استفاده کن
         metadata: {
-          name: 'Final Click',
+          name: 'Onchain Buzzer',
           description: 'Buzz and win ETH!',
-          url: 'https://finalclick.xyz',
-          icons: ['https://finalclick.xyz/logo.png'],
+          url: 'https://onchain-buzzer.xyz',
+          icons: ['https://onchain-buzzer.xyz/logo.png'],
         },
       },
     }),
