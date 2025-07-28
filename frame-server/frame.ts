@@ -16,12 +16,12 @@ router.get('/frame', async (_req, res) => {
       <head>
         <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
         <meta property="og:description" content="Buzz for 0.00005 ETH. Last click wins the pot!" />
-        <meta property="og:image" content="https://finalclick.xyz/images/active.png" />
-        <meta property="og:url" content="https://frame.finalclick.xyz/frame" />
+        <meta property="og:image" content="frame-farcaster-production.up.railway.app/images/active.png" />
+        <meta property="og:url" content="https://frame-farcaster-production.up.railway.app/frame" />
         <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="https://finalclick.xyz/images/active.png?ts=${Date.now()}" />
+        <meta property="fc:frame:image" content="frame-farcaster-production.up.railway.app/images/active.png?ts=${Date.now()}" />
         <meta property="fc:frame:button:1" content="Buzz 🔔" />
-        <meta property="fc:frame:post_url" content="https://frame.finalclick.xyz/frame/handle" />
+        <meta property="fc:frame:post_url" content="frame-farcaster-production.up.railway.app/frame/handle" />
       </head>
     </html>
   `);
