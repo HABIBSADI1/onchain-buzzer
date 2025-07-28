@@ -1,32 +1,24 @@
-import { publicClient } from '../wagmi'
+import { createPublicClient, http } from 'viem'
+import { base } from 'viem/chains'
+import { getContract } from 'viem'
+import abi from '../abi.json'
 
-export async function fetchGameState() {
-  const [roundId, lastPlayer, pot, timeRemaining, clicks] =
-    await publicClient.readContract({
-      address: import.meta.env.VITE_CONTRACT_ADDRESS,
-      abi: [...], // ABI getGameState
-      functionName: 'getGameState',
-    })
-  return { roundId, lastPlayer, pot, timeRemaining, clicks }
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS as `0x${string}`
+const RPC_URL = import.meta.env.VITE_RPC_URL
+
+if (!CONTRACT_ADDRESS || !RPC_URL) {
+  throw new Error('❌ Missing VITE_CONTRACT_ADDRESS or VITE_RPC_URL in env variables.')
 }
 
-export async function fetchLastRound() {
-  const total: bigint = await publicClient.readContract({
-    address: import.meta.env.VITE_CONTRACT_ADDRESS,
-    abi: [...], // ABI totalRounds
-    functionName: 'totalRounds',
-  })
-  if (total === 0n) return null
-  const round = await publicClient.readContract({
-    address: import.meta.env.VITE_CONTRACT_ADDRESS,
-    abi: [...], // ABI getRound
-    functionName: 'getRound',
-    args: [total - 1n],
-  })
-  return {
-    roundId: round[0],
-    winner: round[1],
-    reward: round[2].toString(),
-    timestamp: round[3],
-  }
-}
+// Create public client
+export const publicClient = createPublicClient({
+  chain: base,
+  transport: http(RPC_URL),
+})
+
+// Create contract instance
+export const contract = getContract({
+  address: CONTRACT_ADDRESS,
+  abi,
+  client: publicClient,
+})
