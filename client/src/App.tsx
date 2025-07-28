@@ -8,6 +8,9 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import Explosion from './components/Explosion'
 import ConnectButton from './components/ConnectButton'
+import WinnerModal from './components/WinnerModal'
+
+import { fetchGameState, fetchLastRound } from './lib/contract'
 
 const containerStyle: React.CSSProperties = {
   backgroundColor: '#f7f9ff',
@@ -19,30 +22,60 @@ const containerStyle: React.CSSProperties = {
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false)
-
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768)
     handleResize()
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
-
   return isMobile
 }
 
 export default function App() {
-  const [globalExplosion, setGlobalExplosion] = useState<{ x: number; y: number } | null>(null)
   const isMobile = useIsMobile()
+  const [globalExplosion, setGlobalExplosion] = useState<{ x: number; y: number } | null>(null)
 
+  const [showWinner, setShowWinner] = useState(false)
+  const [winnerData, setWinnerData] = useState<{
+    roundId: number
+    winner: string
+    rewardEth: string
+  } | null>(null)
+
+  // Explosion on global click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const target = e.target as HTMLElement
       if (target.closest('button')) return
       setGlobalExplosion({ x: e.clientX, y: e.clientY })
     }
-
     document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
+  }, [])
+
+  // Winner Modal watcher
+  useEffect(() => {
+    let interval = setInterval(async () => {
+      try {
+        const { timeRemaining } = await fetchGameState()
+        if (timeRemaining === 0) {
+          const round = await fetchLastRound()
+          if (round && round.timestamp > 0 && round.reward !== '0') {
+            setWinnerData({
+              roundId: round.roundId,
+              winner: round.winner,
+              rewardEth: (parseFloat(round.reward) / 1e18).toFixed(4),
+            })
+            setShowWinner(true)
+            clearInterval(interval)
+            setTimeout(() => setShowWinner(false), 5000)
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch winner state:', err)
+      }
+    }, 3000)
+    return () => clearInterval(interval)
   }, [])
 
   return (
@@ -72,7 +105,6 @@ export default function App() {
             alignItems: 'stretch',
           }}
         >
-          {/* Image Box */}
           <div
             style={{
               flex: 1,
@@ -97,7 +129,6 @@ export default function App() {
             />
           </div>
 
-          {/* Interaction Box */}
           <div
             style={{
               flex: 1,
@@ -107,7 +138,6 @@ export default function App() {
               minHeight: isMobile ? 'auto' : '580px',
             }}
           >
-            {/* Timer + Click */}
             <div
               style={{
                 background: '#fff',
@@ -124,7 +154,6 @@ export default function App() {
               <ClickButton />
             </div>
 
-            {/* Share */}
             <div
               style={{
                 background: '#fff',
@@ -138,7 +167,6 @@ export default function App() {
               <ShareButton />
             </div>
 
-            {/* Game Info */}
             <div
               style={{
                 background: '#fff',
@@ -163,7 +191,6 @@ export default function App() {
         </div>
       </main>
 
-      {/* Round History */}
       <div
         style={{
           background: '#f7f9ff',
@@ -188,8 +215,14 @@ export default function App() {
 
       <Footer />
 
-      {globalExplosion && (
-        <Explosion x={globalExplosion.x} y={globalExplosion.y} type="logo" />
+      {globalExplosion && <Explosion x={globalExplosion.x} y={globalExplosion.y} type="logo" />}
+      {showWinner && winnerData && (
+        <WinnerModal
+          roundId={winnerData.roundId}
+          winner={winnerData.winner}
+          rewardEth={winnerData.rewardEth}
+          onClose={() => setShowWinner(false)}
+        />
       )}
     </div>
   )
