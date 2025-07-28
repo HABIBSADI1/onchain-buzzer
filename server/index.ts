@@ -7,21 +7,14 @@ import express from 'express'
 import cors from 'cors'
 import { fileURLToPath } from 'url'
 
-import {
-  createPublicClient,
-  createWalletClient,
-  getContract,
-  http,
-} from 'viem'
-import { privateKeyToAccount } from 'viem/accounts'
+import { createPublicClient, getContract, http } from 'viem'
 import { base } from 'viem/chains'
 
 // Env vars
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
-const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
 
-if (!CONTRACT_ADDRESS || !PRIVATE_KEY || !RPC_URL) {
+if (!CONTRACT_ADDRESS || !RPC_URL) {
   console.error('❌ Missing required env variables.')
   process.exit(1)
 }
@@ -51,13 +44,6 @@ const abi = [
   },
   {
     type: 'function',
-    name: 'forcePayout',
-    stateMutability: 'nonpayable',
-    inputs: [],
-    outputs: [],
-  },
-  {
-    type: 'function',
     name: 'totalRounds',
     stateMutability: 'view',
     inputs: [],
@@ -77,15 +63,16 @@ const abi = [
   },
 ] as const
 
-// viem clients
-const account = privateKeyToAccount(PRIVATE_KEY)
-const publicClient = createPublicClient({ chain: base, transport: http(RPC_URL) })
-const walletClient = createWalletClient({ chain: base, transport: http(RPC_URL), account })
+// viem public client
+const publicClient = createPublicClient({
+  chain: base,
+  transport: http(RPC_URL),
+})
 
 const contract = getContract({
   address: CONTRACT_ADDRESS,
   abi,
-  client: { public: publicClient, wallet: walletClient },
+  client: publicClient,
 })
 
 // Paths
@@ -94,7 +81,7 @@ const __dirname = path.dirname(__filename)
 const DATA_PATH = path.join(__dirname, 'data.json')
 
 // Watcher
-async function runPayoutWatcher() {
+async function runWatcher() {
   console.log(`🚀 Job started at ${new Date().toISOString()}`)
 
   try {
@@ -104,21 +91,18 @@ async function runPayoutWatcher() {
     console.log(`🕐 Round #${roundId} → timeRemaining: ${timeRemaining}, payoutDone: ${payoutDone}`)
 
     if (timeRemaining === 0n && !payoutDone) {
-      console.log('⏱ Round ended. Forcing payout...')
-      const { request } = await contract.simulate.forcePayout()
-      const txHash = await walletClient.writeContract(request)
-      console.log(`✅ Payout tx sent → https://basescan.org/tx/${txHash}`)
+      console.log('⚠️ Payout needed, but backend is read-only.')
     } else {
       console.log('⏳ No payout needed.')
     }
 
     await fetchRecentRounds()
   } catch (err) {
-    console.error('❌ Error in runPayoutWatcher():', err)
+    console.error('❌ Error in runWatcher():', err)
   }
 }
 
-// Recent Rounds
+// Fetch latest rounds
 async function fetchRecentRounds() {
   try {
     const totalRounds: bigint = await contract.read.totalRounds()
@@ -168,5 +152,5 @@ app.listen(PORT, () => {
 })
 
 // Start
-runPayoutWatcher()
+runWatcher()
 fetchRecentRounds()
