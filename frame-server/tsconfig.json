@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "node",
+    "module": "CommonJS",
+    "outDir": "dist",
+    "rootDir": ".",
     "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true
+    "resolveJsonModule": true,
+    "strict": true
   },
-  "include": ["index.ts", "frame.ts", "abi.ts"]
+  "include": ["*.ts"]
 }

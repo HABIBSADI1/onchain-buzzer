@@ -1,17 +1,18 @@
 {
   "name": "frame-server",
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
-    "start": "node --loader ts-node/esm index.ts"
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^17.2.1",
-    "express": "^4.21.2",
-    "ethers": "^6.6.2"
+    "ethers": "^6.10.0",
+    "express": "^4.21.2"
   },
   "devDependencies": {
-    "ts-node": "^10.9.1",
+    "@types/express": "^5.0.3",
     "typescript": "^5.4.0"
   }
 }
