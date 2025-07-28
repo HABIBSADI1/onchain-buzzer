@@ -10,15 +10,23 @@ if (!CONTRACT_ADDRESS || !RPC_URL) {
   throw new Error('❌ Missing VITE_CONTRACT_ADDRESS or VITE_RPC_URL in env variables.')
 }
 
-// Create public client
 export const publicClient = createPublicClient({
   chain: base,
   transport: http(RPC_URL),
 })
 
-// Create contract instance
 export const contract = getContract({
   address: CONTRACT_ADDRESS,
   abi,
   client: publicClient,
 })
+
+// ✅ تابعی برای گرفتن اطلاعات وضعیت بازی
+export async function fetchGameState() {
+  return await contract.read.getGameState()
+}
+
+// ✅ تابعی برای گرفتن آخرین برنده راند قبل
+export async function fetchLastRound(roundId: bigint) {
+  return await contract.read.getRound([roundId])
+}
