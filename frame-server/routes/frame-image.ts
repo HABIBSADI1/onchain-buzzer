@@ -27,8 +27,12 @@ router.get('/frame/image', async (_req, res) => {
   ctx.fillRect(0, 0, 1200, 630);
 
   try {
+    const result = await contract.read.getGameState();
+
+    console.log('✅ Game state:', result);
+
     const [roundId, lastPlayer, , timeRemaining, clicks] =
-  (await contract.read.getGameState()) as unknown as [bigint, string, bigint, bigint, bigint];
+      result as [bigint, string, bigint, bigint, bigint];
 
     const sec = Number(timeRemaining);
     const mm = Math.floor(sec / 60);
@@ -37,19 +41,21 @@ router.get('/frame/image', async (_req, res) => {
 
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 60px sans-serif';
-    ctx.fillText(`Round: ${roundId}`, 50, 100);
+    ctx.fillText(`Round: ${roundId.toString()}`, 50, 100);
     ctx.fillText(`Last: ${lastPlayer.slice(0, 6)}...${lastPlayer.slice(-4)}`, 50, 180);
-    ctx.fillText(`Clicks: ${clicks}`, 50, 260);
+    ctx.fillText(`Clicks: ${clicks.toString()}`, 50, 260);
     ctx.fillText(`Time: ${timerText}`, 50, 340);
   } catch (err) {
+    console.error('❌ Error loading game state:', err);
+
     ctx.fillStyle = '#f00';
-    ctx.font = 'bold 50px sans-serif';
+    ctx.font = 'bold 40px sans-serif';
     ctx.fillText('Error loading state', 100, 300);
   }
 
   const png = canvas.toBuffer('image/png');
   res.setHeader('Content-Type', 'image/png');
-  res.setHeader('Cache-Control', 'public, max-age=15');
+  res.setHeader('Cache-Control', 'no-cache');
   res.send(png);
 });
 
