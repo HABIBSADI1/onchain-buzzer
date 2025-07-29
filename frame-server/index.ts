@@ -7,14 +7,14 @@ import frameImageRouter from './frame-image.js';
 
 const app = express();
 
-// سرو فایل‌های استاتیک
+// 📂 مسیر سرو تصاویر ثابت مثل active.png یا success.png
 app.use('/images', express.static('public/images'));
 
-// تصویر داینامیک
-app.use(frameImageRouter);
-
-// روت‌های فریم
+// 🧠 مسیر فریم اصلی
 app.use(frameRouter);
+
+// 🕒 مسیر تصویر تایمر زنده
+app.use(frameImageRouter);
 
 const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
