@@ -42,31 +42,29 @@ router.get('/frame/image', async (_req, res) => {
   ctx.fillRect(0, 0, 1200, 630);
 
   try {
-    const [, , , timeRemaining, clicks] = await contract.read.getGameState();
+    const [roundId, lastPlayer, pot, timeRemaining, clicks] = await contract.read.getGameState();
 
     const sec = Number(timeRemaining);
     const mm = Math.floor(sec / 60);
     const ss = sec % 60;
     const timerText = `${mm}:${ss.toString().padStart(2, '0')}`;
-    const pot = await contract.read.getGameState(); // یا اضافه‌کردن pot
 
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 80px sans-serif';
-    ctx.fillText(`Round`, 50, 150);
-    ctx.fillText(`${timerText}`, 50, 260);
-    ctx.font = 'bold 40px sans-serif';
-    ctx.fillText(`Clicks: ${clicks}`, 50, 360);
-
-    // می‌تونی مقدار Pot یا roundId رو هم اون‌جا اضافه کنی
+    ctx.font = 'bold 60px sans-serif';
+    ctx.fillText(`⏱ Time: ${timerText}`, 50, 120);
+    ctx.fillText(`🔢 Round: ${roundId}`, 50, 220);
+    ctx.fillText(`👤 Last: ${lastPlayer.slice(0, 10)}...`, 50, 320);
+    ctx.fillText(`💰 Pot: ${(Number(pot) / 1e18).toFixed(5)} ETH`, 50, 420);
+    ctx.fillText(`🖱 Clicks: ${clicks}`, 50, 520);
   } catch (err) {
     ctx.fillStyle = '#f00';
     ctx.font = 'bold 50px sans-serif';
-    ctx.fillText('Error fetching state', 100, 300);
+    ctx.fillText('❌ Error fetching state', 100, 300);
   }
 
   const png = canvas.toBuffer('image/png');
   res.setHeader('Content-Type', 'image/png');
-  res.setHeader('Cache-Control', 'public, max-age=15'); // بروزسانی تصویر هر ۱۵ ثانیه
+  res.setHeader('Cache-Control', 'public, max-age=15'); // refresh every 15 seconds
   res.send(png);
 });
 
