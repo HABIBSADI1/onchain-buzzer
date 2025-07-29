@@ -27,9 +27,8 @@ router.get('/frame/image', async (_req, res) => {
   ctx.fillRect(0, 0, 1200, 630);
 
   try {
-    const [roundId, lastPlayer, , timeRemaining, clicks]: [bigint, string, bigint, bigint, bigint] =
-  await contract.read.getGameState();
-
+    const [roundId, lastPlayer, , timeRemaining, clicks] =
+  (await contract.read.getGameState()) as unknown as [bigint, string, bigint, bigint, bigint];
 
     const sec = Number(timeRemaining);
     const mm = Math.floor(sec / 60);
