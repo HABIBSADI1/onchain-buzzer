@@ -3,12 +3,17 @@ dotenv.config();
 
 import express from 'express';
 import frameRouter from './frame.js';
+import frameImageRouter from './frame-image.js';
 
 const app = express();
 
-// 👇 این خط رو اضافه کن
+// سرو فایل‌های استاتیک
 app.use('/images', express.static('public/images'));
 
+// تصویر داینامیک
+app.use(frameImageRouter);
+
+// روت‌های فریم
 app.use(frameRouter);
 
 const PORT = Number(process.env.PORT) || 3000;
