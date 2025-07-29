@@ -10,7 +10,7 @@ router.get('/frame', async (_req, res) => {
     <html>
       <head>
         <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
-        <meta property="og:description" content="Join the race to be the last clicker and win the pot!" />
+        <meta property="og:description" content="Buzz for 0.00005 ETH. Last click wins the pot!" />
         <meta property="og:image" content="${baseUrl}/frame/image" />
         <meta property="og:url" content="${baseUrl}/frame" />
         <meta property="fc:frame" content="vNext" />
@@ -30,10 +30,10 @@ router.post('/frame/handle', async (_req, res) => {
       <head>
         <meta property="og:title" content="✅ Buzzed!" />
         <meta property="og:description" content="You clicked the buzzer. Stay sharp!" />
-        <meta property="og:image" content="${baseUrl}/frame/image" />
+        <meta property="og:image" content="${baseUrl}/images/success.png" />
         <meta property="og:url" content="${baseUrl}/frame" />
         <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="${baseUrl}/frame/image?ts=${Date.now()}" />
+        <meta property="fc:frame:image" content="${baseUrl}/images/success.png?ts=${Date.now()}" />
         <meta property="fc:frame:button:1" content="Back" />
         <meta property="fc:frame:post_url" content="${baseUrl}/frame" />
       </head>

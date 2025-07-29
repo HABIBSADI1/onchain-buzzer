@@ -42,7 +42,7 @@ router.get('/frame/image', async (_req, res) => {
   ctx.fillRect(0, 0, 1200, 630);
 
   try {
-    const [roundId, lastPlayer, pot, timeRemaining, clicks] = await contract.read.getGameState();
+    const [roundId, lastPlayer, , timeRemaining, clicks] = await contract.read.getGameState();
 
     const sec = Number(timeRemaining);
     const mm = Math.floor(sec / 60);
@@ -51,20 +51,19 @@ router.get('/frame/image', async (_req, res) => {
 
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 60px sans-serif';
-    ctx.fillText(`⏱ Time: ${timerText}`, 50, 120);
-    ctx.fillText(`🔢 Round: ${roundId}`, 50, 220);
-    ctx.fillText(`👤 Last: ${lastPlayer.slice(0, 10)}...`, 50, 320);
-    ctx.fillText(`💰 Pot: ${(Number(pot) / 1e18).toFixed(5)} ETH`, 50, 420);
-    ctx.fillText(`🖱 Clicks: ${clicks}`, 50, 520);
+    ctx.fillText(`Round: ${roundId}`, 50, 100);
+    ctx.fillText(`Last: ${lastPlayer.slice(0, 6)}...${lastPlayer.slice(-4)}`, 50, 180);
+    ctx.fillText(`Clicks: ${clicks}`, 50, 260);
+    ctx.fillText(`Time: ${timerText}`, 50, 340);
   } catch (err) {
     ctx.fillStyle = '#f00';
     ctx.font = 'bold 50px sans-serif';
-    ctx.fillText('❌ Error fetching state', 100, 300);
+    ctx.fillText('Error loading state', 100, 300);
   }
 
   const png = canvas.toBuffer('image/png');
   res.setHeader('Content-Type', 'image/png');
-  res.setHeader('Cache-Control', 'public, max-age=15'); // refresh every 15 seconds
+  res.setHeader('Cache-Control', 'public, max-age=15');
   res.send(png);
 });
 
