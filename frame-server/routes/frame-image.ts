@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { createCanvas } from 'canvas';
 import { createPublicClient, getContract, http } from 'viem';
 import { base } from 'viem/chains';
-import abi from '../abi.json';
+import abi from './abi.json';
 
 const router = Router();
 
