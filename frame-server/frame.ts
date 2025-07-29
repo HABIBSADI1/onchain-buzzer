@@ -2,8 +2,8 @@ import { Router } from 'express';
 
 const router = Router();
 
-// تغییر بده به دامنه Railway یا دامنه اصلیت وقتی آماده شد
-const baseUrl = 'https://frame-farcaster-production.up.railway.app';
+// ✅ دامنه نهایی
+const baseUrl = 'https://finalclick.xyz';
 
 router.get('/frame', async (_req, res) => {
   const html = `
