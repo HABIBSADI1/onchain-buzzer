@@ -3,7 +3,7 @@ dotenv.config();
 
 import express from 'express';
 import frameRouter from './frame.js';
-import frameImageRouter from './frame-image.js';
+import frameImageRouter from './routes/frame-image.js';
 
 const app = express();
 
