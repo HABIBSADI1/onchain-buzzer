@@ -1,5 +1,5 @@
-// frame-image.ts
 import { Router } from 'express';
+import { createCanvas } from 'canvas';
 import { createPublicClient, getContract, http } from 'viem';
 import { base } from 'viem/chains';
 
@@ -36,34 +36,38 @@ const contract = getContract({
 });
 
 router.get('/frame/image', async (_req, res) => {
+  const canvas = createCanvas(1200, 630);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, 1200, 630);
+
   try {
-    const [, , , timeRemaining] = await contract.read.getGameState();
+    const [, , , timeRemaining, clicks] = await contract.read.getGameState();
 
-    const minutes = Math.floor(Number(timeRemaining) / 60);
-    const seconds = Number(timeRemaining) % 60;
-    const timerText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    const sec = Number(timeRemaining);
+    const mm = Math.floor(sec / 60);
+    const ss = sec % 60;
+    const timerText = `${mm}:${ss.toString().padStart(2, '0')}`;
+    const pot = await contract.read.getGameState(); // یا اضافه‌کردن pot
 
-    const svg = `
-      <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
-        <style>
-          text {
-            font-family: Arial, sans-serif;
-            font-size: 48px;
-            fill: #000;
-          }
-        </style>
-        <rect width="100%" height="100%" fill="#fff"/>
-        <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">
-          ⏱️ ${timerText}
-        </text>
-      </svg>
-    `;
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 80px sans-serif';
+    ctx.fillText(`Round`, 50, 150);
+    ctx.fillText(`${timerText}`, 50, 260);
+    ctx.font = 'bold 40px sans-serif';
+    ctx.fillText(`Clicks: ${clicks}`, 50, 360);
 
-    res.setHeader('Content-Type', 'image/svg+xml');
-    res.send(svg);
+    // می‌تونی مقدار Pot یا roundId رو هم اون‌جا اضافه کنی
   } catch (err) {
-    res.status(500).send('Error fetching timer');
+    ctx.fillStyle = '#f00';
+    ctx.font = 'bold 50px sans-serif';
+    ctx.fillText('Error fetching state', 100, 300);
   }
+
+  const png = canvas.toBuffer('image/png');
+  res.setHeader('Content-Type', 'image/png');
+  res.setHeader('Cache-Control', 'public, max-age=15'); // بروزسانی تصویر هر ۱۵ ثانیه
+  res.send(png);
 });
 
 export default router;
