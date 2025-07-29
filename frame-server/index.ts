@@ -5,6 +5,10 @@ import express from 'express';
 import frameRouter from './frame.js';
 
 const app = express();
+
+// 👇 این خط رو اضافه کن
+app.use('/images', express.static('public/images'));
+
 app.use(frameRouter);
 
 const PORT = Number(process.env.PORT) || 3000;
