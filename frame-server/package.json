@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "tsc",
-    "postbuild": "cp abi.json dist/",
+    "postbuild": "cp routes/abi.json dist/abi.json",
     "start": "node dist/index.js"
   },
   "dependencies": {
