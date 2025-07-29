@@ -11,26 +11,20 @@ router.get('/frame', async (_req, res) => {
       <head>
         <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
         <meta property="og:description" content="Buzz for 0.00005 ETH. Last click wins the pot!" />
-        <meta property="og:image" content="${baseUrl}/frame/image?ts=${Date.now()}" />
+        <meta property="og:image" content="${baseUrl}/frame/image" />
         <meta property="og:url" content="${baseUrl}/frame" />
         <meta property="fc:frame" content="vNext" />
         <meta property="fc:frame:image" content="${baseUrl}/frame/image?ts=${Date.now()}" />
-        
         <meta property="fc:frame:button:1" content="Buzz 🔔" />
         <meta property="fc:frame:button:1:action" content="tx" />
-        <meta property="fc:frame:button:1:target" content="eip155:${CHAIN_ID}:${CONTRACT_ADDRESS}" />
-        <meta property="fc:frame:button:1:chain" content="eip155:${CHAIN_ID}" />
-        <meta property="fc:frame:button:1:gas" content="100000" />
-        <meta property="fc:frame:button:1:value" content="50000000000000" /> <!-- 0.00005 ETH -->
-        <meta property="fc:frame:button:1:abi" content='[{"type":"function","name":"click","inputs":[]}]' />
-
-        <meta property="fc:frame:post_url" content="${baseUrl}/frame/handle" />
+        <meta property="fc:frame:button:1:target" content="ethereum:${CONTRACT_ADDRESS}/function:click?value=50000000000000" />
       </head>
     </html>
   `;
   res.setHeader('Content-Type', 'text/html');
   res.send(html);
 });
+
 
 router.post('/frame/handle', async (_req, res) => {
   const html = `
