@@ -11,11 +11,11 @@ export default function Footer() {
       }}
     >
       <p style={{ margin: 0, fontSize: '0.9rem' }}>
-        🚀 Built on <strong>Base</strong> by <a href="https://warpcast.com/habibsadi" target="_blank" rel="noreferrer">habibsadi.eth</a>
+        🚀 Built on <strong>Base</strong> by <a href="https://warpcast.com/0x369" target="_blank" rel="noreferrer">habibsadi.eth</a>
       </p>
       <div style={{ marginTop: '0.5rem' }}>
-        <a href="https://twitter.com/habibsadi" target="_blank" rel="noreferrer" style={linkStyle}>🐦 Twitter</a>{' | '}
-        <a href="https://warpcast.com/habibsadi" target="_blank" rel="noreferrer" style={linkStyle}>🟪 Farcaster</a>
+        <a href="https://twitter.com/FinalClickBase" target="_blank" rel="noreferrer" style={linkStyle}> Twitter (x) </a>{' | '}
+        <a href="https://warpcast.com/0x369" target="_blank" rel="noreferrer" style={linkStyle}>🟪 Farcaster</a>
       </div>
     </footer>
   )

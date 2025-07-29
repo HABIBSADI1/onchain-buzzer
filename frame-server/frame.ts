@@ -3,7 +3,7 @@ import { Router } from 'express';
 const router = Router();
 
 // ✅ دامنه نهایی
-const baseUrl = 'https://finalclick.xyz';
+const baseUrl = 'https://frame.finalclick.xyz';
 
 router.get('/frame', async (_req, res) => {
   const html = `
