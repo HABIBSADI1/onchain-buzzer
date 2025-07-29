@@ -1,9 +1,9 @@
 {
   "name": "frame-server",
   "version": "1.0.0",
-  "type": "commonjs",
   "scripts": {
     "build": "tsc",
+    "postbuild": "cp abi.json dist/",
     "start": "node dist/index.js"
   },
   "dependencies": {

@@ -8,5 +8,5 @@
     "resolveJsonModule": true,
     "strict": true
   },
-  "include": ["**/*.ts"]
+  "include": ["*.ts", "routes/**/*.ts", "abi.json"]
 }
