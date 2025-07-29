@@ -11,7 +11,7 @@ const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`;
 const RPC_URL = process.env.VITE_RPC_URL!;
 
 // ✅ اگر فونت خاصی داری، اینجا اضافه‌اش کن (مثلاً Roboto)
-registerFont(path.join(process.cwd(), 'public/fonts/Roboto-Regular.ttf'), {
+registerFont(path.join(process.cwd(), 'public/fonts/RobotoMono-VariableFont_wght.ttf'), {
   family: 'Roboto',
 });
 
