@@ -1,34 +1,141 @@
-import { createPublicClient, http } from 'viem'
-import { base } from 'viem/chains'
-import abi from './abi.json'
-import { storeRound } from './utils/storeRound'
+import dotenv from 'dotenv'
+dotenv.config()
 
-const client = createPublicClient({
+import fs from 'fs/promises'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import { createPublicClient, getContract, http } from 'viem'
+import { base } from 'viem/chains'
+
+const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
+const RPC_URL = process.env.VITE_RPC_URL!
+const MAX_ROUNDS = 25
+
+if (!CONTRACT_ADDRESS || !RPC_URL) {
+  console.error('❌ Missing required env variables.')
+  process.exit(1)
+}
+
+const abi = [
+  {
+    type: 'function',
+    name: 'getGameState',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [
+      { name: '_roundId', type: 'uint256' },
+      { name: '_lastPlayer', type: 'address' },
+      { name: '_pot', type: 'uint256' },
+      { name: '_timeRemaining', type: 'uint256' },
+      { name: '_clicks', type: 'uint256' },
+    ],
+  },
+  {
+    type: 'function',
+    name: 'payoutDone',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'bool' }],
+  },
+  {
+    type: 'function',
+    name: 'totalRounds',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+  },
+  {
+    type: 'function',
+    name: 'getRound',
+    stateMutability: 'view',
+    inputs: [{ name: 'id', type: 'uint256' }],
+    outputs: [
+      { name: 'roundId', type: 'uint256' },
+      { name: 'winner', type: 'address' },
+      { name: 'reward', type: 'uint256' },
+      { name: 'timestamp', type: 'uint256' },
+    ],
+  },
+] as const
+
+const publicClient = createPublicClient({
   chain: base,
-  transport: http(),
+  transport: http(RPC_URL),
 })
 
-const CONTRACT_ADDRESS = '0xYourContractAddressHere'
+const contract = getContract({
+  address: CONTRACT_ADDRESS,
+  abi,
+  client: publicClient,
+})
 
-async function checkGameState() {
-  const [roundId, lastPlayer, pot, timeRemaining, clickCount] = await client.readContract({
-    address: CONTRACT_ADDRESS,
-    abi,
-    functionName: 'getGameState',
-  })
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const DATA_PATH = path.join(__dirname, 'data.json')
 
-  if (Number(timeRemaining) === 0 && Number(clickCount) > 0) {
-    console.log(`🕹 Round ${roundId} ended.`)
-    await storeRound({
-      roundId,
-      winner: lastPlayer,
-      reward: pot,
-      timestamp: Math.floor(Date.now() / 1000),
-    })
+// Watcher logic
+async function runWatcher() {
+  console.log(`🚀 Job running at ${new Date().toISOString()}`)
+
+  try {
+    const [roundId, , , timeRemaining] = await contract.read.getGameState()
+    const payoutDone = await contract.read.payoutDone()
+
+    console.log(`🕐 Round #${roundId} → timeRemaining: ${timeRemaining}, payoutDone: ${payoutDone}`)
+
+    if (timeRemaining === 0n && !payoutDone) {
+      console.log('⚠️ Payout needed, but backend is read-only.')
+    } else {
+      console.log('⏳ No payout needed.')
+    }
+
+    await fetchRecentRounds()
+  } catch (err) {
+    console.error('❌ Error in runWatcher():', err)
   }
 }
 
-export function startWatcher() {
-  console.log('🚀 Game watcher started...')
-  setInterval(checkGameState, 10_000)
+async function fetchRecentRounds() {
+  try {
+    const totalRounds: bigint = await contract.read.totalRounds()
+    const rounds: any[] = []
+
+    const from = totalRounds > BigInt(MAX_ROUNDS) ? totalRounds - BigInt(MAX_ROUNDS) : 0n
+
+    for (let i = totalRounds - 1n; i >= from; i--) {
+      try {
+        const [roundId, winner, reward, timestamp] = await contract.read.getRound([i])
+        rounds.push({
+          roundId: roundId.toString(),
+          winner,
+          reward: reward.toString(),
+          timestamp: timestamp.toString(),
+          pending: timestamp === 0n,
+        })
+      } catch (err) {
+        console.warn(`⚠️ Could not fetch round ${i}:`, err)
+      }
+    }
+
+    await fs.writeFile(DATA_PATH, JSON.stringify(rounds, null, 2), 'utf-8')
+    console.log(`📥 Cached ${rounds.length} rounds → ${DATA_PATH}`)
+  } catch (e) {
+    console.error('❌ Error in fetchRecentRounds():', e)
+  }
 }
+
+// اجرای اولیه و تکرار دوره‌ای
+let isRunning = false
+
+async function safeRunWatcher() {
+  if (isRunning) return
+  isRunning = true
+  try {
+    await runWatcher()
+  } finally {
+    isRunning = false
+  }
+}
+
+safeRunWatcher()
+setInterval(safeRunWatcher, 30_000) // هر ۳۰ ثانیه اجرا
