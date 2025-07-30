@@ -7,15 +7,17 @@ import { fileURLToPath } from 'url'
 import { createPublicClient, getContract, http } from 'viem'
 import { base } from 'viem/chains'
 
+// متغیرهای محیطی
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
 const MAX_ROUNDS = 25
 
 if (!CONTRACT_ADDRESS || !RPC_URL) {
-  console.error('❌ Missing required env variables.')
+  console.error('❌ Missing env variables.')
   process.exit(1)
 }
 
+// ABI قرارداد
 const abi = [
   {
     type: 'function',
@@ -58,6 +60,7 @@ const abi = [
   },
 ] as const
 
+// اتصال به قرارداد
 const publicClient = createPublicClient({
   chain: base,
   transport: http(RPC_URL),
@@ -69,13 +72,14 @@ const contract = getContract({
   client: publicClient,
 })
 
+// مسیر فایل
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const DATA_PATH = path.join(__dirname, 'data.json')
 
-// Watcher logic
+// تابع اصلی واچ
 async function runWatcher() {
-  console.log(`🚀 Job running at ${new Date().toISOString()}`)
+  console.log(`🚀 Watching at ${new Date().toISOString()}`)
 
   try {
     const [roundId, , , timeRemaining] = await contract.read.getGameState()
@@ -84,9 +88,7 @@ async function runWatcher() {
     console.log(`🕐 Round #${roundId} → timeRemaining: ${timeRemaining}, payoutDone: ${payoutDone}`)
 
     if (timeRemaining === 0n && !payoutDone) {
-      console.log('⚠️ Payout needed, but backend is read-only.')
-    } else {
-      console.log('⏳ No payout needed.')
+      console.log('⚠️ Payout needed (read-only backend).')
     }
 
     await fetchRecentRounds()
@@ -95,6 +97,7 @@ async function runWatcher() {
   }
 }
 
+// گرفتن راندها از قرارداد
 async function fetchRecentRounds() {
   try {
     const totalRounds: bigint = await contract.read.totalRounds()
@@ -124,7 +127,7 @@ async function fetchRecentRounds() {
   }
 }
 
-// اجرای اولیه و تکرار دوره‌ای
+// اجرای دوره‌ای با کنترل
 let isRunning = false
 
 async function safeRunWatcher() {
@@ -136,3 +139,6 @@ async function safeRunWatcher() {
     isRunning = false
   }
 }
+
+safeRunWatcher()
+setInterval(safeRunWatcher, 30_000) // هر ۳۰ ثانیه
