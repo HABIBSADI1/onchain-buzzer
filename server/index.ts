@@ -16,7 +16,9 @@ const app = express()
 
 // حل مشکل CORS
 app.use(cors({
-  origin: '*', // یا دقیق‌تر: ['https://finalclick.xyz']
+  origin: ['https://finalclick.xyz'], // یا '*'
+  methods: ['GET'],
+  allowedHeaders: ['Content-Type'],
 }))
 
 // API endpoint
