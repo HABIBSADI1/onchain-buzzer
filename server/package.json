@@ -2,10 +2,10 @@
   "name": "server",
   "version": "1.0.0",
   "type": "module",
-  "scripts": {
-  "start": "node --loader ts-node/esm index.ts",
+ "scripts": {
+  "api": "node --loader ts-node/esm index.ts",
   "watcher": "node --loader ts-node/esm watchGame.ts",
-  "dev": "concurrently \"npm run watcher\" \"npm run start\""
+  "start": "concurrently \"npm run api\" \"npm run watcher\""
 },
   "dependencies": {
     "cors": "^2.8.5",
