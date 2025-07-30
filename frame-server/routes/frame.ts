@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { encodeFunctionData } from 'viem';
-import abi from '../../abi'; // ✅ مسیر جدید
+import abi from './abi.json'; // ← این کار میکنه فقط وقتی JSON باشه
 
 const router = Router();
 
@@ -16,7 +16,6 @@ const encodedClickData = encodeFunctionData({
 
 router.get('/frame', async (_req, res) => {
   const html = `
-    <!DOCTYPE html>
     <html>
       <head>
         <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
@@ -26,7 +25,6 @@ router.get('/frame', async (_req, res) => {
 
         <meta property="fc:frame" content="vNext" />
         <meta property="fc:frame:image" content="${baseUrl}/frame/image?ts=${Date.now()}" />
-        
         <meta property="fc:frame:button:1" content="🔥 BUZZ NOW" />
         <meta property="fc:frame:button:1:action" content="tx" />
         <meta property="fc:frame:button:1:target" content="eip155:8453:${CONTRACT_ADDRESS}" />
@@ -34,7 +32,7 @@ router.get('/frame', async (_req, res) => {
         <meta property="fc:frame:button:1:value" content="${CLICK_FEE}" />
       </head>
     </html>
-  `.trim();
+  `;
 
   res.setHeader('Content-Type', 'text/html');
   res.send(html);
