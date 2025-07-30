@@ -7,33 +7,35 @@ import fs from 'fs/promises'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
-// مسیر فایل
+// مسیر فایل دیتا
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const DATA_PATH = path.join(__dirname, 'data.json')
 
+// ایجاد اپ
 const app = express()
 
-// حل مشکل CORS
+// فعال‌سازی CORS برای دامنه اصلی
 app.use(cors({
-  origin: ['https://finalclick.xyz'], // یا '*'
+  origin: ['https://finalclick.xyz'], // یا مثلاً ['*'] برای باز بودن به همه
   methods: ['GET'],
   allowedHeaders: ['Content-Type'],
+  credentials: false, // اگر از کوکی استفاده نمی‌کنی
 }))
 
-// API endpoint
+// مسیر API
 app.get('/api/rounds', async (_req, res) => {
   try {
     const data = await fs.readFile(DATA_PATH, 'utf-8')
     res.setHeader('Content-Type', 'application/json')
-    res.send(data)
+    res.status(200).send(data)
   } catch (err) {
-    console.error('❌ Error reading data.json:', err)
-    res.status(500).json({ error: 'Failed to read rounds' })
+    console.error('❌ Failed to read data.json:', err)
+    res.status(500).json({ error: 'Failed to fetch rounds.' })
   }
 })
 
-// پورت برای Railway
+// راه‌اندازی سرور
 const PORT = Number(process.env.PORT) || 3000
 app.listen(PORT, () => {
   console.log(`📡 API Server running at http://localhost:${PORT}`)

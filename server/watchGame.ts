@@ -7,17 +7,17 @@ import { fileURLToPath } from 'url'
 import { createPublicClient, getContract, http } from 'viem'
 import { base } from 'viem/chains'
 
-// متغیرهای محیطی
+// بررسی و گرفتن متغیرها
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
-const RPC_URL = process.env.VITE_RPC_URL!
+const RPC_URL = process.env.VITE_RPC_URL
 const MAX_ROUNDS = 25
 
 if (!CONTRACT_ADDRESS || !RPC_URL) {
-  console.error('❌ Missing env variables.')
+  console.error('❌ Missing environment variables.')
   process.exit(1)
 }
 
-// ABI قرارداد
+// تعریف ABI
 const abi = [
   {
     type: 'function',
@@ -60,8 +60,8 @@ const abi = [
   },
 ] as const
 
-// اتصال به قرارداد
-const publicClient = createPublicClient({
+// تنظیمات اتصال
+const client = createPublicClient({
   chain: base,
   transport: http(RPC_URL),
 })
@@ -69,7 +69,7 @@ const publicClient = createPublicClient({
 const contract = getContract({
   address: CONTRACT_ADDRESS,
   abi,
-  client: publicClient,
+  client,
 })
 
 // مسیر فایل
@@ -77,7 +77,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 const DATA_PATH = path.join(__dirname, 'data.json')
 
-// تابع اصلی واچ
+// اجرای ناظر
 async function runWatcher() {
   console.log(`🚀 Watching at ${new Date().toISOString()}`)
 
@@ -88,7 +88,7 @@ async function runWatcher() {
     console.log(`🕐 Round #${roundId} → timeRemaining: ${timeRemaining}, payoutDone: ${payoutDone}`)
 
     if (timeRemaining === 0n && !payoutDone) {
-      console.log('⚠️ Payout needed (read-only backend).')
+      console.log('⚠️ Payout needed, backend is read-only.')
     }
 
     await fetchRecentRounds()
@@ -97,7 +97,7 @@ async function runWatcher() {
   }
 }
 
-// گرفتن راندها از قرارداد
+// گرفتن اطلاعات راندها
 async function fetchRecentRounds() {
   try {
     const totalRounds: bigint = await contract.read.totalRounds()
@@ -127,7 +127,7 @@ async function fetchRecentRounds() {
   }
 }
 
-// اجرای دوره‌ای با کنترل
+// اجرای ایمن دوره‌ای
 let isRunning = false
 
 async function safeRunWatcher() {
@@ -140,5 +140,6 @@ async function safeRunWatcher() {
   }
 }
 
+// اجرای اولیه و زمان‌بندی
 safeRunWatcher()
-setInterval(safeRunWatcher, 30_000) // هر ۳۰ ثانیه
+setInterval(safeRunWatcher, 30_000)
