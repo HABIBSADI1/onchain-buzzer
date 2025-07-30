@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-  "start": "node --loader ts-node/esm watchGame.ts",  
-  "api": "node --loader ts-node/esm index.ts",       
-  "dev": "concurrently \"npm run start\" \"npm run api\"" 
+  "start": "node --loader ts-node/esm index.ts",
+  "watcher": "node --loader ts-node/esm watchGame.ts",
+  "dev": "concurrently \"npm run watcher\" \"npm run start\""
 },
   "dependencies": {
     "cors": "^2.8.5",
