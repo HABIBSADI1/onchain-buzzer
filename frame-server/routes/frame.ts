@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { encodeFunctionData } from 'viem';
-import abi from '../abi.json'; // مسیر درست نسبت به `routes/`
+import { abi } from '../abi'; // مسیر درست نسبت به `routes/`
 
 const router = Router();
 
