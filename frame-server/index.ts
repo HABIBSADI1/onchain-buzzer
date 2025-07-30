@@ -2,8 +2,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
-import frameRouter from './frame.js';
+import frameRoute from './routes/frame';
 import frameImageRouter from './routes/frame-image.js';
+import txRoute from './routes/tx';
 
 const app = express();
 
@@ -11,11 +12,10 @@ const app = express();
 app.use('/images', express.static('public/images'));
 
 // 🧠 مسیر فریم اصلی
-app.use(frameRouter);
-
+app.use(frameRoute);
 // 🕒 مسیر تصویر تایمر زنده
 app.use(frameImageRouter);
-
+app.use(txRoute);
 const PORT = Number(process.env.PORT) || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Frame server ready at http://localhost:${PORT}`);
