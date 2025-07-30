@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { encodeFunctionData } from 'viem';
-import abi from './abi.json';
+import abi from '../../abi'; // ✅ مسیر جدید
 
 const router = Router();
 
