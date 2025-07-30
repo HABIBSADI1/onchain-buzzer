@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { encodeFunctionData } from 'viem';
-import abi from './abi.json'; // ← این کار میکنه فقط وقتی JSON باشه
+import { abi } from '../abi'; // چون abi.ts در ریشه‌ی frame-server هست
 
 const router = Router();
 
@@ -8,14 +8,15 @@ const baseUrl = 'https://frame.finalclick.xyz';
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`;
 const CLICK_FEE = '0.00005';
 
-const encodedClickData = encodeFunctionData({
+const encodedClick = encodeFunctionData({
   abi,
   functionName: 'click',
   args: [],
 });
 
-router.get('/frame', async (_req, res) => {
+router.get('/frame', (_req, res) => {
   const html = `
+    <!DOCTYPE html>
     <html>
       <head>
         <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
@@ -25,10 +26,11 @@ router.get('/frame', async (_req, res) => {
 
         <meta property="fc:frame" content="vNext" />
         <meta property="fc:frame:image" content="${baseUrl}/frame/image?ts=${Date.now()}" />
+
         <meta property="fc:frame:button:1" content="🔥 BUZZ NOW" />
         <meta property="fc:frame:button:1:action" content="tx" />
         <meta property="fc:frame:button:1:target" content="eip155:8453:${CONTRACT_ADDRESS}" />
-        <meta property="fc:frame:button:1:data" content="${encodedClickData}" />
+        <meta property="fc:frame:button:1:data" content="${encodedClick}" />
         <meta property="fc:frame:button:1:value" content="${CLICK_FEE}" />
       </head>
     </html>

@@ -12,4 +12,11 @@ export const abi = [
       { name: '_clicks', type: 'uint256' },
     ],
   },
+  {
+    type: 'function',
+    name: 'click',
+    stateMutability: 'payable',
+    inputs: [],
+    outputs: [],
+  },
 ] as const;
