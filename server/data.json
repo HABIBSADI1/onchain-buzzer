@@ -1,5 +1,33 @@
 [
   {
+    "roundId": "4",
+    "winner": "0xA429f7bEa7e847aD5e9eEaB9eEFe966A6Fa1EB89",
+    "reward": "200000000000000",
+    "timestamp": "1753890931",
+    "pending": false
+  },
+  {
+    "roundId": "3",
+    "winner": "0xA429f7bEa7e847aD5e9eEaB9eEFe966A6Fa1EB89",
+    "reward": "50000000000000",
+    "timestamp": "1753871561",
+    "pending": false
+  },
+  {
+    "roundId": "2",
+    "winner": "0xA429f7bEa7e847aD5e9eEaB9eEFe966A6Fa1EB89",
+    "reward": "100000000000000",
+    "timestamp": "1753787317",
+    "pending": false
+  },
+  {
+    "roundId": "1",
+    "winner": "0xA429f7bEa7e847aD5e9eEaB9eEFe966A6Fa1EB89",
+    "reward": "250000000000000",
+    "timestamp": "1753700087",
+    "pending": false
+  },
+  {
     "roundId": "0",
     "winner": "0x0000000000000000000000000000000000000000",
     "reward": "0",
