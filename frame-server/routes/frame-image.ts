@@ -10,9 +10,9 @@ const router = Router();
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`;
 const RPC_URL = process.env.VITE_RPC_URL!;
 
-// دیگه نیازی به registerFont نداریم چون میخوایم فونت سیستم باشه
-// اگه بخوای میتونی فونت سفارشی رو کامنت کنی:
-// registerFont(path.join(process.cwd(), 'public/fonts/RobotoMono-VariableFont_wght.ttf'), { family: 'RobotoMono' });
+registerFont(path.join(process.cwd(), 'public/fonts/DejaVuSans.ttf'), {
+  family: 'DejaVuSans',
+});
 
 const publicClient = createPublicClient({
   chain: base,
@@ -42,17 +42,15 @@ router.get('/image', async (_req, res) => {
     const timerText = `${mm}:${ss.toString().padStart(2, '0')}`;
 
     ctx.fillStyle = '#fff';
-    // استفاده از فونت سیستمی که ایموجی رو پشتیبانی میکنه
-    ctx.font = 'bold 48px "Segoe UI Emoji", "Arial Unicode MS", sans-serif';
-
+    ctx.font = 'bold 48px DejaVuSans';
     ctx.fillText(`🏁 Round: ${roundId}`, 60, 120);
     ctx.fillText(`👤 Last: ${lastPlayer.slice(0, 6)}...${lastPlayer.slice(-4)}`, 60, 200);
-    ctx.fillText(`💰 Pot: ${(Number(pot) / 1e18).toFixed(5)} ETH`, 60, 280); // تبدیل به ETH
+    ctx.fillText(`💰 Pot: ${(Number(pot) / 1e18).toFixed(5)} ETH`, 60, 280);
     ctx.fillText(`🔢 Clicks: ${clicks}`, 60, 360);
     ctx.fillText(`⏱️ Time: ${timerText}`, 60, 440);
   } catch (err) {
     ctx.fillStyle = '#f00';
-    ctx.font = 'bold 48px sans-serif';
+    ctx.font = 'bold 48px DejaVuSans';
     ctx.fillText('Error loading state', 100, 300);
   }
 
