@@ -16,48 +16,43 @@ const encodedClickData = encodeFunctionData({
 
 router.get('/', (_req, res) => {
   const imageUrl = `${baseUrl}/frame-image/image?ts=${Date.now()}`;
-  const html = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Final Click Frame</title>
 
-        <!-- Open Graph & Farcaster Frame Metadata -->
-        <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
-        <meta property="og:description" content="Buzz for 0.00005 ETH. Last click wins the pot!" />
-        <meta property="og:image" content="${imageUrl}" />
-        <meta property="og:url" content="${baseUrl}/frame" />
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Final Click Frame</title>
 
-        <meta property="fc:frame" content="vNext" />
-        <meta property="fc:frame:image" content="${imageUrl}" />
+<meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
+<meta property="og:description" content="Buzz for 0.00005 ETH. Last click wins the pot!" />
+<meta property="og:image" content="${imageUrl}" />
+<meta property="og:url" content="${baseUrl}/frame" />
 
-        <meta property="fc:frame:button:1" content="🔥 BUZZ NOW" />
-        <meta property="fc:frame:button:1:action" content="tx" />
-        <meta property="fc:frame:button:1:target" content="eip155:8453:${CONTRACT_ADDRESS}" />
-        <meta property="fc:frame:button:1:data" content="${encodedClickData}" />
-        <meta property="fc:frame:button:1:value" content="${CLICK_FEE}" />
+<meta property="fc:frame" content="vNext" />
+<meta property="fc:frame:image" content="${imageUrl}" />
 
-        <!-- Optional: Redirect after 10 seconds -->
-        <meta http-equiv="refresh" content="10; url=https://finalclick.xyz" />
+<meta property="fc:frame:button:1" content="🔥 BUZZ NOW" />
+<meta property="fc:frame:button:1:action" content="tx" />
+<meta property="fc:frame:button:1:target" content="eip155:8453:${CONTRACT_ADDRESS}" />
+<meta property="fc:frame:button:1:data" content="${encodedClickData}" />
+<meta property="fc:frame:button:1:value" content="${CLICK_FEE}" />
 
-        <style>
-          body {
-            font-family: sans-serif;
-            padding: 3rem;
-            text-align: center;
-            background-color: #111;
-            color: #fff;
-          }
-        </style>
-      </head>
-      <body>
-        <h1>🟢 Frame Meta Loaded</h1>
-        <p>If you're seeing this in a browser, the frame meta is for Farcaster clients.</p>
-      </body>
-    </html>
-  `;
+<style>
+  body {
+    font-family: sans-serif;
+    background-color: #111;
+    color: #fff;
+    text-align: center;
+    padding: 3rem;
+  }
+</style>
+</head>
+<body>
+  <h1>🟢 Frame Meta Loaded</h1>
+  <p>If you're seeing this in a browser, the frame meta is for Farcaster clients.</p>
+</body>
+</html>`;
 
   res.setHeader('Content-Type', 'text/html');
   res.send(html);
