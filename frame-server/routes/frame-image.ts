@@ -58,8 +58,12 @@ router.get('/image', async (_req, res) => {
   }
 
   const png = canvas.toBuffer('image/png');
+
+  // اضافه کردن هدر CORS برای اجازه به Farcaster و سایر کلاینت‌ها
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'image/png');
   res.setHeader('Cache-Control', 'public, max-age=15');
+
   res.send(png);
 });
 
