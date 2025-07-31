@@ -1,7 +1,7 @@
 // frame-server/routes/frame.ts
 import { Router } from 'express';
 import { encodeFunctionData } from 'viem';
-import { abi } from './abi'; // ← مسیر درست نسبت به خود فایل
+import { abi } from './abi';
 
 const router = Router();
 
@@ -15,12 +15,18 @@ const encodedClickData = encodeFunctionData({
   args: [],
 });
 
-router.get('/', async (_req, res) => {
+router.get('/', (_req, res) => {
   const imageUrl = `${baseUrl}/frame-image/image?ts=${Date.now()}`;
 
   const html = `
-    <html>
+    <!DOCTYPE html>
+    <html lang="en">
       <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Final Click Frame</title>
+
+        <!-- OG & Frame Metadata -->
         <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
         <meta property="og:description" content="Buzz for 0.00005 ETH. Last click wins the pot!" />
         <meta property="og:image" content="${imageUrl}" />
@@ -34,9 +40,21 @@ router.get('/', async (_req, res) => {
         <meta property="fc:frame:button:1:target" content="eip155:8453:${CONTRACT_ADDRESS}" />
         <meta property="fc:frame:button:1:data" content="${encodedClickData}" />
         <meta property="fc:frame:button:1:value" content="${CLICK_FEE}" />
+
+        <meta http-equiv="refresh" content="10; url=https://finalclick.xyz" />
+        <style>
+          body {
+            font-family: sans-serif;
+            padding: 3rem;
+            text-align: center;
+            background: #111;
+            color: #fff;
+          }
+        </style>
       </head>
       <body>
-        <h1>Buzz Frame Loaded</h1>
+        <h1>🟢 Frame Meta Loaded</h1>
+        <p>If you're seeing this in a browser, the frame meta is for Farcaster clients.</p>
       </body>
     </html>
   `;
