@@ -1,4 +1,3 @@
-// frame-server/routes/frame.ts
 import { Router } from 'express';
 import { encodeFunctionData } from 'viem';
 import { abi } from './abi';
@@ -17,16 +16,15 @@ const encodedClickData = encodeFunctionData({
 
 router.get('/', (_req, res) => {
   const imageUrl = `${baseUrl}/frame-image/image?ts=${Date.now()}`;
-
   const html = `
     <!DOCTYPE html>
     <html lang="en">
       <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Final Click Frame</title>
 
-        <!-- OG & Frame Metadata -->
+        <!-- Open Graph & Farcaster Frame Metadata -->
         <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
         <meta property="og:description" content="Buzz for 0.00005 ETH. Last click wins the pot!" />
         <meta property="og:image" content="${imageUrl}" />
@@ -41,13 +39,15 @@ router.get('/', (_req, res) => {
         <meta property="fc:frame:button:1:data" content="${encodedClickData}" />
         <meta property="fc:frame:button:1:value" content="${CLICK_FEE}" />
 
+        <!-- Optional: Redirect after 10 seconds -->
         <meta http-equiv="refresh" content="10; url=https://finalclick.xyz" />
+
         <style>
           body {
             font-family: sans-serif;
             padding: 3rem;
             text-align: center;
-            background: #111;
+            background-color: #111;
             color: #fff;
           }
         </style>
