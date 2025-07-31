@@ -1,14 +1,13 @@
 import { Router } from 'express';
 import { encodeFunctionData } from 'viem';
-import { abi } from '../abi'; // مطمئن شو فایل `abi.ts` درست export داره
+import { abi } from '../abi';
 
 const router = Router();
 
-const baseUrl = 'https://frame.finalclick.xyz'; // ← آدرس Railway یا دامنه شما
+const baseUrl = 'https://frame.finalclick.xyz';
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`;
 const CLICK_FEE = '0.00005';
 
-// Encode the calldata for click() function
 const encodedClickData = encodeFunctionData({
   abi,
   functionName: 'click',
@@ -35,7 +34,10 @@ router.get('/', async (_req, res) => {
         <meta property="fc:frame:button:1:data" content="${encodedClickData}" />
         <meta property="fc:frame:button:1:value" content="${CLICK_FEE}" />
       </head>
-      <body></body>
+      <body>
+        <!-- Optional fallback text -->
+        <h1 style="color:white;text-align:center;margin-top:200px">Final Click Frame</h1>
+      </body>
     </html>
   `;
 

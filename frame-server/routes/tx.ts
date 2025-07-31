@@ -1,7 +1,7 @@
 // frame-server/routes/tx.ts
 import { Router } from 'express';
 import { encodeFunctionData, parseEther } from 'viem';
-import abi from '../abi.json';
+import { abi } from '../abi';
 
 const router = Router();
 
@@ -14,7 +14,7 @@ const calldata = encodeFunctionData({
   args: [],
 });
 
-router.post('/frame/tx', (_req, res) => {
+router.post('/', (_req, res) => {
   res.json({
     chainId: CHAIN_ID,
     method: 'eth_sendTransaction',
@@ -22,7 +22,7 @@ router.post('/frame/tx', (_req, res) => {
       {
         to: CONTRACT_ADDRESS,
         data: calldata,
-        value: parseEther('0.00005').toString(16), // مقدار fee اینجا قابل تغییره
+        value: parseEther('0.00005').toString(16),
       },
     ],
   });
