@@ -1,14 +1,19 @@
-// frame-server/routes/frame-image.ts
 import { Router } from 'express';
-import { createCanvas } from 'canvas';
+import { createCanvas, registerFont } from 'canvas';
 import { createPublicClient, getContract, http } from 'viem';
 import { base } from 'viem/chains';
 import { abi } from './abi';
+import path from 'path';
 
 const router = Router();
 
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`;
 const RPC_URL = process.env.VITE_RPC_URL!;
+
+// ثبت فونت اختصاصی؛ مسیر دقیق به فایل فونت را تنظیم کن:
+registerFont(path.join(process.cwd(), 'public/fonts/RobotoMono-VariableFont_wght.ttf'), {
+  family: 'RobotoMono',
+});
 
 const publicClient = createPublicClient({
   chain: base,
@@ -38,7 +43,8 @@ router.get('/image', async (_req, res) => {
     const timerText = `${mm}:${ss.toString().padStart(2, '0')}`;
 
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 48px sans-serif';
+    // استفاده از فونت ثبت شده:
+    ctx.font = 'bold 48px RobotoMono';
     ctx.fillText(`🏁 Round: ${roundId}`, 60, 120);
     ctx.fillText(`👤 Last: ${lastPlayer.slice(0, 6)}...${lastPlayer.slice(-4)}`, 60, 200);
     ctx.fillText(`💰 Pot: ${(Number(pot) / 1e15).toFixed(2)} finney`, 60, 280);
@@ -46,7 +52,7 @@ router.get('/image', async (_req, res) => {
     ctx.fillText(`⏱️ Time: ${timerText}`, 60, 440);
   } catch (err) {
     ctx.fillStyle = '#f00';
-    ctx.font = 'bold 48px sans-serif';
+    ctx.font = 'bold 48px RobotoMono';
     ctx.fillText('Error loading state', 100, 300);
   }
 
