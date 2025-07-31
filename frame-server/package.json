@@ -2,10 +2,10 @@
   "name": "frame-server",
   "version": "1.0.0",
   "scripts": {
-  "build": "tsc",
-  "postbuild": "cp routes/abi.json dist/abi.json",
-  "start": "node dist/index.js"
-},
+    "build": "tsc",
+    "postbuild": "cp routes/abi.json dist/abi.json",
+    "start": "node dist/index.js"
+  },
   "dependencies": {
     "canvas": "^3.1.2",
     "cors": "^2.8.5",
@@ -15,6 +15,7 @@
     "viem": "^2.33.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/node": "^24.1.0",
     "typescript": "^5.4.0"
