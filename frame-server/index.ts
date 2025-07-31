@@ -1,24 +1,23 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
-import express from 'express';
-import frameRoute from './routes/frame';
-import frameImageRouter from './routes/frame-image';
-import txRoute from './routes/tx';
+import express from "express";
+import cors from "cors";
+import { frameRouter } from "./routes/frame";
+import { txRouter } from "./routes/tx";
+import { frameImageRouter } from "./routes/frame-image";
 
 const app = express();
+app.use(cors());
+app.use(express.json());
 
-// 📂 مسیر سرو تصاویر ثابت مثل active.png یا success.png
-app.use('/images', express.static('public/images'));
+// Static public files
+app.use("/public", express.static("public"));
 
-// ✅ مسیر فریم اصلی
-app.use('/frame', frameRoute);
-// ✅ مسیر تصویر داینامیک فریم
-app.use('/frame/image', frameImageRouter);
-// ✨ تراکنش‌ها (در صورت نیاز)
-app.use('/tx', txRoute);
+// Routes
+app.use("/frame", frameRouter);
+app.use("/tx", txRouter);
+app.use("/frame-image", frameImageRouter);
 
-const PORT = Number(process.env.PORT) || 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Frame server ready at http://localhost:${PORT}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Frame server ready at http://0.0.0.0:${PORT}`);
 });
+
