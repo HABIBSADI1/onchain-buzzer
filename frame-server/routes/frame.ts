@@ -1,6 +1,7 @@
+// frame-server/routes/frame.ts
 import { Router } from 'express';
 import { encodeFunctionData } from 'viem';
-import { abi } from '../abi';
+import { abi } from './abi'; // ← مسیر درست نسبت به خود فایل
 
 const router = Router();
 
@@ -35,8 +36,7 @@ router.get('/', async (_req, res) => {
         <meta property="fc:frame:button:1:value" content="${CLICK_FEE}" />
       </head>
       <body>
-        <!-- Optional fallback text -->
-        <h1 style="color:white;text-align:center;margin-top:200px">Final Click Frame</h1>
+        <h1>Buzz Frame Loaded</h1>
       </body>
     </html>
   `;
