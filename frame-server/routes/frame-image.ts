@@ -26,7 +26,7 @@ const contract = getContract({
   client: publicClient,
 });
 
-router.get('/frame/image', async (_req, res) => {
+router.get('/image', async (_req, res) => {
   const canvas = createCanvas(1200, 630);
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = '#000';
