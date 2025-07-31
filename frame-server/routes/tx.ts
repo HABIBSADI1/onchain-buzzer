@@ -1,4 +1,3 @@
-// frame-server/routes/tx.ts
 import { Router } from 'express';
 import { encodeFunctionData, parseEther } from 'viem';
 import { abi } from './abi';
@@ -6,7 +5,7 @@ import { abi } from './abi';
 const router = Router();
 
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`;
-const CHAIN_ID = 'eip155:8453';
+const CHAIN_ID = 'eip155:8453'; // Base Mainnet
 
 const calldata = encodeFunctionData({
   abi,
@@ -14,8 +13,9 @@ const calldata = encodeFunctionData({
   args: [],
 });
 
-router.post('/', (_req, res) => {
-  console.log("✅ /tx hit");
+router.post('/', (req, res) => {
+  console.log('✅ Received /tx request:', req.body);
+
   res.json({
     chainId: CHAIN_ID,
     method: 'eth_sendTransaction',
@@ -23,7 +23,7 @@ router.post('/', (_req, res) => {
       {
         to: CONTRACT_ADDRESS,
         data: calldata,
-        value: parseEther('0.00005').toString(16),
+        value: '0x' + parseEther('0.00005').toString(16), // مقدار به فرمت hex با پیشوند 0x
       },
     ],
   });
