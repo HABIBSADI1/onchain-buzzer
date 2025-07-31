@@ -43,11 +43,11 @@ router.get('/image', async (_req, res) => {
 
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 48px DejaVuSans';
-    ctx.fillText(`🏁 Round: ${roundId}`, 60, 120);
-    ctx.fillText(`👤 Last: ${lastPlayer.slice(0, 6)}...${lastPlayer.slice(-4)}`, 60, 200);
-    ctx.fillText(`💰 Pot: ${(Number(pot) / 1e18).toFixed(5)} ETH`, 60, 280);
-    ctx.fillText(`🔢 Clicks: ${clicks}`, 60, 360);
-    ctx.fillText(`⏱️ Time: ${timerText}`, 60, 440);
+    ctx.fillText(`Round: ${roundId}`, 60, 120);
+    ctx.fillText(`Last player: ${lastPlayer.slice(0, 6)}...${lastPlayer.slice(-4)}`, 60, 200);
+    ctx.fillText(`Pot: ${(Number(pot) / 1e18).toFixed(5)} ETH`, 60, 280);
+    ctx.fillText(`Clicks: ${clicks}`, 60, 360);
+    ctx.fillText(`Time: ${timerText}`, 60, 440);
   } catch (err) {
     ctx.fillStyle = '#f00';
     ctx.font = 'bold 48px DejaVuSans';
