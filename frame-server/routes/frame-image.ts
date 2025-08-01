@@ -10,7 +10,6 @@ const router = Router();
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`;
 const RPC_URL = process.env.VITE_RPC_URL!;
 
-// ثبت فونت DejaVuSans (فونت محبوب و ساپورت شده)
 registerFont(path.join(process.cwd(), 'public/fonts/DejaVuSans.ttf'), {
   family: 'DejaVuSans',
 });
@@ -30,7 +29,6 @@ router.get('/image', async (_req, res) => {
   const canvas = createCanvas(1200, 630);
   const ctx = canvas.getContext('2d');
 
-  // پس‌زمینه مشکی
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, 1200, 630);
 
@@ -43,7 +41,6 @@ router.get('/image', async (_req, res) => {
     const ss = sec % 60;
     const timerText = `${mm}:${ss.toString().padStart(2, '0')}`;
 
-    // متن سفید با فونت ثبت‌شده
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 48px DejaVuSans';
     ctx.fillText(`Round: ${roundId}`, 60, 120);
@@ -52,18 +49,15 @@ router.get('/image', async (_req, res) => {
     ctx.fillText(`Clicks: ${clicks}`, 60, 360);
     ctx.fillText(`Time: ${timerText}`, 60, 440);
   } catch (err) {
+    console.error(err);
     ctx.fillStyle = '#f00';
     ctx.font = 'bold 48px DejaVuSans';
     ctx.fillText('Error loading state', 100, 300);
   }
 
   const png = canvas.toBuffer('image/png');
-
-  // اضافه کردن هدر CORS برای اجازه به Farcaster و سایر کلاینت‌ها
-  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'image/png');
   res.setHeader('Cache-Control', 'public, max-age=15');
-
   res.send(png);
 });
 
