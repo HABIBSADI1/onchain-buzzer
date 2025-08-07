@@ -9,18 +9,20 @@ import { fileURLToPath } from 'url'
 
 import { createPublicClient, getContract, http } from 'viem'
 import { base } from 'viem/chains'
+import { startWatcher } from './watchGame.js' // 🔁 اجرای چک‌کننده هر 10 ثانیه
 
 // Env vars
 const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`
 const RPC_URL = process.env.VITE_RPC_URL!
+const PORT = Number(process.env.PORT) || 3000
+const MAX_ROUNDS = 25
 
 if (!CONTRACT_ADDRESS || !RPC_URL) {
   console.error('❌ Missing required env variables.')
   process.exit(1)
 }
 
-const MAX_ROUNDS = 25
-
+// ABI
 const abi = [
   {
     type: 'function',
@@ -63,7 +65,7 @@ const abi = [
   },
 ] as const
 
-// viem public client
+// viem client
 const publicClient = createPublicClient({
   chain: base,
   transport: http(RPC_URL),
@@ -82,7 +84,7 @@ const DATA_PATH = path.join(__dirname, 'data.json')
 
 // Watcher
 async function runWatcher() {
-  console.log(`🚀 Job started at ${new Date().toISOString()}`)
+  console.log(`🚀 Watcher started at ${new Date().toISOString()}`)
 
   try {
     const [roundId, , , timeRemaining] = await contract.read.getGameState()
@@ -146,11 +148,10 @@ app.get('/api/rounds', async (_req, res) => {
   }
 })
 
-const PORT = Number(process.env.PORT) || 3000
+// Start server
 app.listen(PORT, () => {
   console.log(`📡 Server ready at http://localhost:${PORT}`)
-})
 
-// Start
-runWatcher()
-fetchRecentRounds()
+  runWatcher()     // ✅ اجرای اولیه برای لود راندها
+  startWatcher()   // 🔁 اجرای هر 10 ثانیه بررسی پایان راند
+})

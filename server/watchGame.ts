@@ -30,5 +30,5 @@ async function checkGameState() {
 
 export function startWatcher() {
   console.log('🚀 Game watcher started...')
-  setInterval(checkGameState, 10_000)
+  setInterval(checkGameState, 300_000)
 }
