@@ -1,13 +1,8 @@
 {
-  "miniapp": {
-    "version": "vNext",
-    "name": "Onchain Buzzer",
-    "iconUrl": "/finalclick.ico",
-    "imageUrl": "https://frame.finalclick.xyz/frame-image/image",
-    "buttonTitle": "Join",
-    "splashImageUrl": "https://frame.finalclick.xyz/frame-image/image",
-    "splashBackgroundColor": "#000000",
-    "requiredChains": ["eip155:8453"],
-    "requiredCapabilities": ["wallet.getEthereumProvider"]
+  "version": 1,
+  "ownerFid": 99999,
+  "name": "FinalClick",
+  "verifiedAddresses": {
+    "ethAddresses": []
   }
 }
