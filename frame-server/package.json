@@ -1,11 +1,9 @@
 {
   "name": "finalclick-frame-server",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=20.11.0"
-  },
+  "engines": { "node": ">=20.11.0" },
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
@@ -15,6 +13,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
+    "sharp": "^0.34.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
