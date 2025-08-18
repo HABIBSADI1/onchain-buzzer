@@ -1,0 +1,17 @@
+{
+  "baseBuilder": {
+    "allowedAddresses": ["0x952424570693Ce550d5c252ca3a6EAf775EFC3b7"]
+  }
+  ,
+  "miniapp": {
+    "version": "vNext",
+    "name": "Onchain Buzzer",
+    "iconUrl": "/finalclick.ico",
+    "imageUrl": "/frame-image/image",
+    "buttonTitle": "Join",
+    "splashImageUrl": "/frame-image/image",
+    "splashBackgroundColor": "#000000",
+    "requiredChains": ["eip155:8453"],
+    "requiredCapabilities": ["wallet.getEthereumProvider"]
+  }
+}

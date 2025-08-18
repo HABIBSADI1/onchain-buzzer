@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+
+    <!--
+      Farcaster Mini App metadata.  This duplicate of the meta tags in
+      `client/index.html` ensures that local development builds can be
+      shared as mini apps on Farcaster if needed.  The relative
+      `imageUrl` refers to the frame-image endpoint of the frame-server.
+    -->
+    <meta
+      name="fc:miniapp"
+      content='{"version":"vNext","imageUrl":"/frame-image/image","button":{"title":"Join","action":{"type":"launch_miniapp","url":"/frame"}}}'
+    />
+    <meta
+      name="fc:frame"
+      content='{"version":"vNext","image":"/frame-image/image","button":{"title":"Join","action":{"type":"post_redirect","target":"/frame"}}}'
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Load the Farcaster Mini App SDK dynamically.  See client/index.html
+         for additional commentary.  The exact version can be updated as
+         needed. -->
+    <script type="module">
+      (async () => {
+        try {
+          const sdk = await import(
+            "https://esm.sh/@farcaster/miniapp-sdk@1.0.2?target=es2020&no-cache&cdn=jsdelivr"
+          );
+          if (sdk && sdk.actions && typeof sdk.actions.ready === "function") {
+            sdk.actions.ready();
+          }
+        } catch (err) {
+          console.debug("Farcaster SDK not loaded", err);
+        }
+      })();
+    </script>
+  </body>
+</html>

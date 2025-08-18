@@ -1,0 +1,24 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node --loader ts-node/esm index.ts",
+    "watcher": "node --loader ts-node/esm watchGame.ts",
+    "dev": "concurrently \"npm run start\" \"npm run watcher\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "viem": "^2.32.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.3",
+    "@types/node": "^20.4.0",
+    "concurrently": "^8.2.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.4.0"
+  }
+}

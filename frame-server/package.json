@@ -1,0 +1,23 @@
+{
+  "name": "frame-server",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "canvas": "^3.1.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "ethers": "^6.10.0",
+    "express": "^4.21.2",
+    "viem": "^2.33.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.1.0",
+    "shx": "^0.4.0",
+    "typescript": "^5.4.0"
+  }
+}
