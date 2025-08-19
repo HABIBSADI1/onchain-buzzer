@@ -1,19 +1,11 @@
 import { Router } from "express";
-import { encodeFunctionData } from "viem";
-import { abi } from "./abi";
 
 const router = Router();
 
-// Use environment variable for base URL if provided, otherwise default to the production
-// domain.  Remove any trailing slashes so the generated URLs are consistent.
+// نرمال‌سازی دامنه (حذف اسلش پایانی)
 const RAW_BASE_URL = process.env.FRAME_BASE_URL || "https://frame.finalclick.xyz";
 const baseUrl = RAW_BASE_URL.replace(/\/+$/, "");
 
-// When serving the frame meta, use a URL action (targeting the `/tx` endpoint) to
-// construct the transaction.  This avoids having to embed call data and ETH
-// values directly into the meta tags, which can cause validation errors on
-// Farcaster clients.  The `/tx` route will return a properly formatted JSON
-// payload describing the transaction.
 router.get("/", (_req, res) => {
   const now = Date.now();
   const imageUrl = `${baseUrl}/frame-image/image?ts=${now}`;
@@ -38,10 +30,9 @@ router.get("/", (_req, res) => {
       <!-- Frames vNext -->
       <meta property="fc:frame" content="vNext" />
       <meta property="fc:frame:image" content="${imageUrl}" />
-      <!-- After any interaction (cast, tx) refresh this frame so the image and state update -->
       <meta property="fc:frame:post_url" content="${frameUrl}" />
 
-      <!-- Transaction button: uses URL action to POST to /tx -->
+      <!-- TX via URL action -->
       <meta property="fc:frame:button:1" content="🔥 BUZZ NOW" />
       <meta property="fc:frame:button:1:action" content="tx" />
       <meta property="fc:frame:button:1:target" content="${txUrl}" />
@@ -51,9 +42,8 @@ router.get("/", (_req, res) => {
       <p style="opacity:.8">Meta tags loaded for Farcaster clients.</p>
     </body>
   </html>`;
+
   res.setHeader("Content-Type", "text/html; charset=utf-8");
-  // Prevent caching of the frame HTML.  While the image is cached at the
-  // resource level, the HTML itself should always reflect the latest state.
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
