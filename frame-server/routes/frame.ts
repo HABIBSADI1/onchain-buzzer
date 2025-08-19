@@ -10,6 +10,7 @@ router.get("/", (_req, res) => {
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
+
       <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
       <meta property="og:description" content="Buzz for 0.00005 ETH. Last click wins the pot!" />
       <meta property="og:image" content="${imageUrl}" />
@@ -24,7 +25,7 @@ router.get("/", (_req, res) => {
       <meta property="fc:frame:button:1:post_url" content="${BASE_URL}/frame" />
     </head>
     <body>
-      <h1>🟢 Final Click Frame</h1>
+      <h1>Final Click Frame</h1>
       <p>Meta tags loaded for Farcaster clients.</p>
     </body>
   </html>`;
