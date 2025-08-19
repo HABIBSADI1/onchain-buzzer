@@ -4,38 +4,42 @@ import { abi } from "./abi";
 
 const router = Router();
 
-/**
- * ENV handling
- * - CONTRACT_ADDRESS: آدرس کانترکت
- * - CHAIN_ID: مثل eip155:8453 یا eip155:84532
- * - BUZZ_VALUE_ETH: کارمزد کلیک به ETH (مثلاً 0.00005)
- */
 const CONTRACT_ADDRESS =
   (process.env.VITE_CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS) as `0x${string}`;
 const CHAIN_ID = process.env.VITE_CHAIN_ID || process.env.CHAIN_ID || "eip155:8453";
 const BUZZ_VALUE_ETH = process.env.BUZZ_VALUE_ETH || "0.00005";
 
-// calldata برای click()
+// اگر ست شود، params را به شکل آرایه برمی‌گردانیم
+const USE_ARRAY_PARAMS = String(process.env.TX_PARAMS_ARRAY || "").toLowerCase() === "true";
+
 const calldata = encodeFunctionData({
   abi,
   functionName: "click",
   args: [],
 });
 
-// پاسخ اکشن تراکنش مطابق Spec
 router.post("/", (_req, res) => {
-  const valueWei = parseEther(BUZZ_VALUE_ETH).toString(); // دسیمالِ Wei
+  const valueWei = parseEther(BUZZ_VALUE_ETH).toString();
 
-  const payload = {
-    method: "eth_sendTransaction",
-    chainId: CHAIN_ID,
-    params: {
-      abi,                     // کمک می‌کند کلاینت‌ها UI بهتری نشان دهند
-      to: CONTRACT_ADDRESS,    // آدرس کانترکت
-      data: calldata,          // تابع click()
-      value: valueWei,         // مثل "50000000000000"
-    },
+  const txObject = {
+    abi,
+    to: CONTRACT_ADDRESS,
+    data: calldata,
+    value: valueWei, // e.g. "50000000000000"
   };
+
+  const payload =
+    USE_ARRAY_PARAMS
+      ? {
+          method: "eth_sendTransaction",
+          chainId: CHAIN_ID,
+          params: [txObject], // ← آرایه
+        }
+      : {
+          method: "eth_sendTransaction",
+          chainId: CHAIN_ID,
+          params: txObject, // ← آبجکت
+        };
 
   res.setHeader("Content-Type", "application/json");
   res.status(200).json(payload);
