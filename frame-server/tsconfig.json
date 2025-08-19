@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
-    "outDir": "dist",
-    "rootDir": ".",
+    "module": "commonjs",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "strict": true
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": false,
+    "skipLibCheck": true
   },
-  "include": ["*.ts", "routes/**/*.ts", "abi.json"]
+  "include": ["src"]
 }

@@ -4,22 +4,14 @@ import { abi } from "./abi";
 
 const router = Router();
 
-const BASE_URL =
-  process.env.FRAME_BASE_URL || "https://frame.finalclick.xyz";
-const CONTRACT_ADDRESS =
-  (process.env.VITE_CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS) as `0x${string}`;
-const CHAIN_ID_CAIP =
-  (process.env.VITE_CHAIN_ID || process.env.CHAIN_ID || "eip155:8453") as string;
+const BASE_URL = process.env.FRAME_BASE_URL || "https://frame.finalclick.xyz";
+const CONTRACT_ADDRESS = (process.env.VITE_CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS) as `0x${string}`;
+const CHAIN_CAIP = (process.env.VITE_CHAIN_ID || process.env.CHAIN_ID || "eip155:8453") as string;
 const BUZZ_VALUE_ETH = process.env.BUZZ_VALUE_ETH || "0.00005";
 
-// کال‌دیتا برای click()
-const calldata = encodeFunctionData({
-  abi,
-  functionName: "click",
-  args: [],
-});
-
-// Farcaster برای value رشته‌ی دسیمالِ Wei می‌خواهد (نه هگز و نه ETH)
+// calldata تابع click()
+const calldata = encodeFunctionData({ abi, functionName: "click", args: [] });
+// Farcaster value را به صورت "Wei دسیمال" می خواهد (نه هگز/ETH)
 const valueWeiDecimal = parseEther(BUZZ_VALUE_ETH).toString();
 
 router.get("/", (_req, res) => {
@@ -30,6 +22,9 @@ router.get("/", (_req, res) => {
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="Cache-Control" content="no-store" />
+
+  <meta property="og:title" content="🔔 Final Click — Buzz to Win!" />
+  <meta property="og:description" content="Buzz for 0.00005 ETH. Last click wins the pot!" />
   <meta property="og:image" content="${imageUrl}" />
   <meta property="og:url" content="${BASE_URL}/frame" />
 
@@ -38,16 +33,16 @@ router.get("/", (_req, res) => {
   <meta property="fc:frame:image" content="${imageUrl}" />
   <meta property="fc:frame:post_url" content="${BASE_URL}/frame" />
 
-  <!-- TX via meta tags (بدون /tx) -->
+  <!-- TX از طریق متاتگ‌ها -->
   <meta property="fc:frame:button:1" content="🔥 BUZZ NOW" />
   <meta property="fc:frame:button:1:action" content="tx" />
-  <meta property="fc:frame:button:1:target" content="${CHAIN_ID_CAIP}:${CONTRACT_ADDRESS}" />
+  <meta property="fc:frame:button:1:target" content="${CHAIN_CAIP}:${CONTRACT_ADDRESS}" />
   <meta property="fc:frame:button:1:data" content="${calldata}" />
   <meta property="fc:frame:button:1:value" content="${valueWeiDecimal}" />
 </head>
-<body style="background:#111;color:#fff;font:16px system-ui;padding:2rem">
+<body style="background:#111;color:#fff;font:16px system-ui;padding:24px">
   <h1>Final Click Frame</h1>
-  <p>Meta tags loaded for Farcaster clients.</p>
+  <p>Meta tags loaded for Farcaster clients (Meta-TX mode).</p>
 </body>
 </html>`;
 
