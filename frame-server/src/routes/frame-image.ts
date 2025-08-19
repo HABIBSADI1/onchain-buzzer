@@ -42,7 +42,7 @@ async function readState(): Promise<GameState> {
     const m = Math.floor(tr / 60), s = tr % 60;
     time = `${m}:${String(s).padStart(2, "0")}`;
   } catch {
-    // ignore – می‌ذاریم با دیفالت برگرده
+    // ignore – با دیفالت‌ها ادامه بده
   }
   return { round, last, pot, clicks, time };
 }
@@ -67,10 +67,10 @@ function renderSvg(s: GameState): string {
 }
 
 async function renderPng(s: GameState): Promise<Buffer> {
-  // canvas را فقط در صورت نیاز و در زمان اجرا لود می‌کنیم
+  // داینامیک لود؛ اگر نصب نباشه خطا می‌گیریم و fallback می‌زنیم
   let mod: any;
   try {
-    mod = await import("canvas"); // اگر نصب نباشد throw می‌شود
+    mod = await import("canvas");
   } catch {
     throw new Error("canvas-not-available");
   }
@@ -97,19 +97,17 @@ async function renderPng(s: GameState): Promise<Buffer> {
 router.get("/image", async (_req, res) => {
   const state = await readState();
 
-  // اگر PNG خواسته شده و canvas موجود بود → PNG
   if (IMAGE_FORMAT === "png") {
     try {
       const buf = await renderPng(state);
       res.setHeader("Content-Type", "image/png");
       res.setHeader("Cache-Control", "no-store");
       return res.send(buf);
-    } catch (e) {
-      // canvas در دسترس نیست → سقوط کنترل‌شده به SVG
+    } catch {
+      // canvas موجود نیست → SVG
     }
   }
 
-  // پیش‌فرض یا fallback → SVG
   const svg = renderSvg(state);
   res.setHeader("Content-Type", "image/svg+xml");
   res.setHeader("Cache-Control", "no-store");
