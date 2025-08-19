@@ -1,14 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2022",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "target": "ES2020",
+    "module": "CommonJS",
     "outDir": "dist",
-    "rootDir": "src",
-    "strict": true,
+    "rootDir": ".",
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "strict": true
   },
-  "include": ["src"]
+  "include": ["*.ts", "routes/**/*.ts", "abi.json"]
 }

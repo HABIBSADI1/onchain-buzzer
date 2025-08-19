@@ -4,11 +4,6 @@ import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 
-// Detect whether the app is running inside a Farcaster mini app.  We
-// conditionally select connectors based on this flag.
-import { isMiniApp } from './lib/isMiniApp'
-import { MiniAppConnector } from './lib/MiniAppConnector'
-
 const baseChain = {
   id: 8453,
   name: 'Base',
@@ -26,41 +21,30 @@ const { chains, provider, webSocketProvider } = configureChains(
   [jsonRpcProvider({ rpc: () => ({ http: import.meta.env.VITE_RPC_URL! }) })]
 )
 
-// Build the list of connectors.  When running as a Farcaster mini
-// app we use our custom MiniAppConnector which retrieves the
-// provider from the Farcaster runtime.  Otherwise we fall back to
-// standard browser connectors (MetaMask, Coinbase Wallet,
-// WalletConnect).  Note: when using WalletConnect in the
-// non‑miniapp context we rely on ConnectKit to display the QR code,
-// so the `showQrModal` option remains false.
-const connectors = isMiniApp()
-  ? [new MiniAppConnector({ chains })]
-  : [
-      new MetaMaskConnector({ chains }),
-      new CoinbaseWalletConnector({
-        chains,
-        options: {
-          appName: 'FinalClick',
-        },
-      }),
-      new WalletConnectConnector({
-        chains,
-        options: {
-          projectId: import.meta.env.VITE_WC_PROJECT_ID!,
-          showQrModal: false,
-          metadata: {
-            name: 'Final Click',
-            description: 'Buzz and win ETH!',
-            url: 'https://finalclick.xyz',
-            icons: ['https://finalclick.xyz/logo.png'],
-          },
-        },
-      }),
-    ]
-
 export const client = createClient({
   autoConnect: true,
-  connectors,
+  connectors: [
+    new MetaMaskConnector({ chains }),
+    new CoinbaseWalletConnector({
+      chains,
+      options: {
+        appName: 'FinalClick',
+      },
+    }),
+    new WalletConnectConnector({
+      chains,
+      options: {
+        projectId: import.meta.env.VITE_WC_PROJECT_ID!,
+        showQrModal: false, // ⛔ مهم: از QR modal داخلی ConnectKit استفاده کن
+        metadata: {
+          name: 'Final Click',
+          description: 'Buzz and win ETH!',
+          url: 'https://finalclick.xyz',
+          icons: ['https://finalclick.xyz/logo.png'],
+        },
+      },
+    }),
+  ],
   provider,
   webSocketProvider,
 })

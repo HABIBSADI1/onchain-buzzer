@@ -22,26 +22,45 @@
       `launch_miniapp` action to open the mini app when tapped in the
       Farcaster client.
     -->
-    <!--
-      Farcaster Mini App metadata.  Using absolute URLs here ensures
-      that the preview image and button action resolve correctly when
-      the site is embedded in Farcaster.  The image URL points to
-      the frame server running on the dedicated subdomain
-      frame.finalclick.xyz, and the button launches the mini app at
-      that same domain.
-    -->
     <meta
       name="fc:miniapp"
-      content='{"version":"vNext","imageUrl":"https://frame.finalclick.xyz/frame-image/image","button":{"title":"Join","action":{"type":"launch_miniapp","url":"https://frame.finalclick.xyz/frame"}}}'
+      content='{"version":"vNext","imageUrl":"/frame-image/image","button":{"title":"Join","action":{"type":"launch_miniapp"}}}'
     />
-    <!-- Optional backwards compatibility for older clients that only read frames -->
+    <!-- Optional backwards compatibility for older clients that read frames only -->
     <meta
       name="fc:frame"
-      content='{"version":"vNext","image":"https://frame.finalclick.xyz/frame-image/image","button":{"title":"Join","action":{"type":"post_redirect","target":"https://frame.finalclick.xyz/frame"}}}'
+      content='{"version":"vNext","image":"/frame-image/image","button":{"title":"Join","action":{"type":"post_redirect","target":"/frame"}}}'
     />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!--
+      Load the Farcaster Mini App SDK on the client.  The SDK exposes
+      methods used to inform the Farcaster runtime that the mini app is
+      ready.  Dynamic import is used so the script does not block the
+      initial page load, and any errors are caught to avoid breaking the
+      site when it is not embedded in a Farcaster client.  See
+      https://miniapps.farcaster.xyz/docs/quick-start for guidance.
+    -->
+    <script type="module">
+      (async () => {
+        try {
+          const sdk = await import(
+            "https://esm.sh/@farcaster/miniapp-sdk@1.0.2?target=es2020&no-cache&cdn=jsdelivr"
+          );
+          // Signal to the Farcaster environment that the mini app has
+          // finished loading.  Without calling ready(), Farcaster clients
+          // may not display the mini app properly.
+          if (sdk && sdk.actions && typeof sdk.actions.ready === "function") {
+            sdk.actions.ready();
+          }
+        } catch (err) {
+          // Ignore errors when not running inside a Farcaster context.
+          console.debug("Farcaster SDK not loaded", err);
+        }
+      })();
+    </script>
   </body>
 </html>

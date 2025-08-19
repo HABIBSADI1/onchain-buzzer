@@ -7,10 +7,11 @@
     "version": "vNext",
     "name": "Onchain Buzzer",
     "iconUrl": "/finalclick.ico",
+    "homeUrl": "/",
     "imageUrl": "/frame-image/image",
     "buttonTitle": "Join",
     "splashImageUrl": "/frame-image/image",
-    "splashBackgroundColor": "#000000",
+    "splashBackgroundColor": "#0b0b0b",
     "requiredChains": ["eip155:8453"],
     "requiredCapabilities": ["wallet.getEthereumProvider"]
   }
