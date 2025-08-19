@@ -7,8 +7,11 @@ import path from "path";
 
 const router = Router();
 
-const CONTRACT_ADDRESS = process.env.VITE_CONTRACT_ADDRESS as `0x${string}`;
-const RPC_URL = process.env.VITE_RPC_URL!;
+// Read contract and RPC URL from either the Vite‑style variables or plain
+// variables.  The provided .env uses CONTRACT_ADDRESS and RPC_URL, so fall
+// back to those when the Vite prefixed variables are undefined.
+const CONTRACT_ADDRESS = (process.env.VITE_CONTRACT_ADDRESS || process.env.CONTRACT_ADDRESS) as `0x${string}`;
+const RPC_URL = process.env.VITE_RPC_URL || process.env.RPC_URL!;
 
 // Pre‑load fonts ahead of time.  Use a font with broad Unicode coverage so
 // that Persian/Arabic characters render properly in the preview image.  The

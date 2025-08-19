@@ -1,10 +1,17 @@
 import express from "express";
+import dotenv from "dotenv";
 import cors from "cors";
 import frameRouter from "./routes/frame";
 import txRouter from "./routes/tx";
 import frameImageRouter from "./routes/frame-image";
 
 const app = express();
+
+// Load environment variables from .env at the root of the frame-server.  This
+// ensures that CONTRACT_ADDRESS, RPC_URL and other variables defined in the
+// provided `.env` file are available on process.env.  Without this call the
+// variables would remain undefined in production builds.
+dotenv.config();
 app.use(cors());
 app.use(express.json());
 
