@@ -9,11 +9,11 @@ const CONTRACT_ADDRESS =
 const RAW_CHAIN_ID = process.env.VITE_CHAIN_ID || process.env.CHAIN_ID || "8453";
 const BUZZ_VALUE_ETH = process.env.BUZZ_VALUE_ETH || "0.00005";
 
-// پیش‌فرض: طبق JSON-RPC
+// متد قابل سوییچ با ENV
 const METHOD: "eth_sendTransaction" | "wallet_sendEthereumTransaction" =
   (process.env.TX_METHOD as any) || "eth_sendTransaction";
 
-// chainId عددی
+// chainId عددی (از هر فرمت، حتی eip155:8453، عدد را استخراج می‌کند)
 function toNumericChainId(raw: string) {
   const m = String(raw).match(/(\d+)$/);
   return m ? Number(m[1]) : Number(raw);
@@ -28,13 +28,13 @@ router.post("/", (_req, res) => {
   const tx = {
     to: CONTRACT_ADDRESS,
     data: calldata,
-    value: valueWei, // decimal wei
+    value: valueWei,
   };
 
   const payload = {
-    method: METHOD,              // eth_sendTransaction (قابل تغییر با ENV)
-    chainId,                     // 8453 (number)
-    params: [tx],                // ← آرایه‌ی تک‌عنصری
+    method: METHOD,           // پیش‌فرض: eth_sendTransaction
+    chainId,                  // 8453 (عدد)
+    params: [tx],             // JSON-RPC: آرایه
   };
 
   res.setHeader("Content-Type", "application/json");
