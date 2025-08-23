@@ -1,0 +1,14 @@
+{
+  "accountAssociation": {
+    "fid": 305778,
+    "ethAddress": "0x952424570693Ce550d5c252ca3a6EAf775EFC3b7"
+  },
+  "frame": {
+    "version": "vNext"
+  },
+  "baseBuilder": {
+    "allowedAddresses": [
+      "0x952424570693Ce550d5c252ca3a6EAf775EFC3b7"
+    ]
+  }
+}
