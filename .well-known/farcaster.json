@@ -1,14 +1,42 @@
 {
   "accountAssociation": {
-    "fid": 305778,
-    "ethAddress": "0x952424570693Ce550d5c252ca3a6EAf775EFC3b7"
-  },
-  "frame": {
-    "version": "vNext"
+    "header": "eyJmaWQiOjMwNTc3OCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDVhYTdjZjkwNzQ2MGJiZmY4OGMzNWFjNWMzNGU1YjYxODFmYjFlMWYifQ",
+    "payload": "eyJkb21haW4iOiJmaW5hbGNsaWNrLnh5eiJ9",
+    "signature": "MHhmMTNmZmUxM2JjNzA1YmMwYmEwZWJhZWY5ZjU2N2I4MDJkNDI0NTc4NGIwODFhZmJiZTljYTg4M2IzMTU1MzM1N2E0MmYxYzcxNDllYmQ2ZjIzNDc3ODk3YzAzYzcwMDNjNWNjYmNlOTAxZTYzYjE3MjZjM2JiZmI1NGUwMjYxMDFj"
   },
   "baseBuilder": {
     "allowedAddresses": [
-      "0x952424570693Ce550d5c252ca3a6EAf775EFC3b7"
+      "0x5aa7cf907460bbff88c35ac5c34e5b6181fb1e1f"
     ]
+  },
+  "frame": {
+    "version": "1",
+    "name": "FinalClick",
+    "homeUrl": "https://finalclick.xyz",
+    "iconUrl": "https://finalclick.xyz/icon.png",
+    "splashImageUrl": "https://finalclick.xyz/splash.png",
+    "splashBackgroundColor": "#0052FF",
+    "webhookUrl": "https://finalclick.xyz/api/webhook",
+    "subtitle": "Real-time buzzer on Base",
+    "description": "Round-based buzzer game on Base: connect wallet, tap to take the lead, last click wins the pot.",
+    "screenshotUrls": [
+      "https://finalclick.xyz/screens/1.png",
+      "https://finalclick.xyz/screens/2.png",
+      "https://finalclick.xyz/screens/3.png"
+    ],
+    "primaryCategory": "gaming",
+    "tags": [
+      "finalclick",
+      "buzzer",
+      "base",
+      "miniapp",
+      "onchain"
+    ],
+    "heroImageUrl": "https://finalclick.xyz/og.png",
+    "tagline": "Last click wins.",
+    "ogTitle": "FinalClick — On-Chain Buzzer",
+    "ogDescription": "Simple, addictive, and verifiable. Tap fast, take the pot, all on Base.",
+    "ogImageUrl": "https://finalclick.xyz/og.png",
+    "noindex": false
   }
 }
